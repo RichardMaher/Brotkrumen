@@ -1,0 +1,16 @@
+{
+  "short_name": "Brotkrumen",
+  "name": "Brotkrumen Web App",
+  "description": "Native Background Geolocation POC",
+  "icons": [
+    {
+      "src": "gingerbreadhouse.png",
+      "sizes": "48x48 128x128 144x144",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "TravelManager.html",
+  "background_color": "#00ccdd",
+  "theme_color": "#00ccdd",
+  "display": "fullscreen"
+}

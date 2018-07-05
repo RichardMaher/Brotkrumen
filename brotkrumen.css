@@ -1,0 +1,347 @@
+/* identification division.
+ * program-id.    Brotkrumen-css.
+ * author.        Richard Maher.
+ * version.       1.0
+ */
+ 	@-ms-viewport{
+		width: device-width;
+		height: auto;
+	}	
+	*, *:before, *:after{
+		box-sizing: inherit;
+		-webkit-touch-callout: none;
+		-webkit-tap-highlight-color: rgba(0,0,0,0);
+		-moz-user-select: none;
+	}		
+	::-webkit-scrollbar{ 
+		display:none; 
+	}	
+	::-ms-clear{
+		display: none;
+	}		
+	html, body{
+		margin: 0px;
+		box-sizing: border-box;
+		-webkit-user-select: none;
+		-khtml-user-select: none;
+		-ms-user-select: none;
+		user-select: none;
+	    -ms-overflow-style: none;
+        -ms-content-zooming: none;
+		touch-action: manipulation;
+	}		
+    body{
+		background-color: #00ccdd; 
+		color: black;
+        font-family: Arial, sans-serif;
+		font-size: 14px;
+		pointer-events: auto;
+		display: flex;
+		flex-direction: column;
+		height: 100vh;
+		box-shadow: inset 0 0 0.8em black;
+		padding: 1em;
+	} 	
+	.wholeScreen{
+		display: flex;
+		flex-direction: column;
+		height: 100%;
+	}	
+    div#headerDiv{
+		display: flex;
+		order: 1;
+		width: 100%;
+		padding: 0.5em;
+		background-color: black;
+        color: #00ccdd;
+		border-radius: 1.0em;
+		box-shadow: inset 0 0 0.8em #eff;
+		align-items: center;
+		flex: 10 0 10;
+	}
+    div#statsDiv{
+		display: flex;
+		flex: 8 0 8;
+		order: 2;
+		align-items: center;
+	}		
+    #stats{
+		margin: 0 auto; 
+		font-size: 1.5em; 
+		width: 100%;
+	}		
+	div#contentDiv{
+		display: flex;
+		flex: 82;
+		order: 3;
+		border-radius: 1.0em;
+    }	
+	main{
+		width:100%;
+		height: 100%;
+		overflow: auto;
+		scroll-behavior: smooth;
+	}	
+	table{
+        border-collapse: collapse;
+		border-spacing: 0px;
+	}	
+	table#header{
+		width: 100%;
+	}
+	.header{
+		font-family: Georgia;
+		font-size: 2.5em;
+		text-shadow: 1px 1px 0 #eff;
+		line-height: 95%;
+	}
+	.subHeader{
+		font-family: Georgia;
+		font-size: 2.0em;
+		font-weight: bold;
+		background-color: white;
+		color: #00ccdd;
+		box-shadow: inset 0 0 0.8em #0cc;
+		padding: 0.3em;
+		border-radius: 0.8em;
+	}	
+	div#mapDiv{
+		height: 100%;
+		width: 100%;
+		border-radius: 0.8em;
+	}	
+	#logScroll{
+		position: relative;
+		overflow: hidden;
+		height: 100%;
+		width: 100%;
+		background-color: black;
+		border-radius: 1.0em;
+	}	
+	ul{
+		padding: 0px;	
+		margin: 0px;	
+		display: inline-block;
+	}		
+	.log {
+		padding: 0.5em;
+		width: 100%;
+		height: 100%;
+		box-shadow: inset 0 0 0.8em #eff; 
+		white-space: nowrap;
+		font-size:1em; 
+		font-family: "Courier New", Courier, monospace; 
+		font-weight: bold;
+		color:#00ccdd; 
+		background-color: black;
+		overflow: auto; 
+		position: absolute;
+		scroll-behavior: smooth;
+	}	
+	#summary{
+		height: 100%;
+		width: 100%;
+		scroll-behavior: smooth;
+	}	
+	#mapDetails{
+		height: 100%;
+		width: 100%;
+		scroll-behavior: smooth;
+	}	
+	input[type="button"]{
+		cursor: pointer;
+		border-radius: 0.66em;
+		font-weight: bold;
+		text-shadow: 1px 1px 0 #0d0d0d;
+		color: #eff;
+		box-shadow: inset 0 0 0.8em #eff;
+		background: -webkit-gradient(linear,left top,left bottom,color-stop(0.15, #ccffff),color-stop(0.51, #00ccdd),color-stop(0.65, #007580));
+		background: -moz-linear-gradient(center top, #ccffff 15%, #00ccdd 51%, #007580 65%);
+	}		
+	input#btn{
+		height: 2.5em;
+		width: auto;
+		font-size: 1.25em;
+	}	
+	input#zoomIn{
+		height: 1.3em;
+		width: 1.3em;
+		font-size: 1.8em;
+	}	
+	input#zoomOut{
+		height: 1.3em;
+		width: 1.3em;
+		font-size: 1.8em;
+	}	
+	input#mapToggle{
+		height: 2.0em;
+		width: auto;
+		font-size: 1.0em;
+	}	
+	.br {
+		position: absolute;
+		bottom: 2px;
+		right: 1em;
+		font-size: 0.7em;
+		color: white;
+	}
+	#zoomLevelParam{
+		color: white;
+	}
+	#replaySpeed{
+		font-size: 2em;
+		color: white;
+	}
+	#itinerary {
+		width: 100%;
+	}	
+	#itinerary thead{
+		width: 100%;
+	}
+	#itinerary thead tr{
+		height: 4.5em;
+		width: 100%;
+	}	
+	#itinerary tbody{
+		display: table;
+		margin: 0 auto;
+		font-size: 1.2em;
+		padding: 1.0em 0;
+	}	
+	#itinerary tbody tr{
+		height: 1.5em;
+	}	
+	#itinerary tbody td:nth-child(3){
+		color: black;
+		font-weight: bold;
+		text-align: right;
+		width: 40%;
+	}	
+	#itinerary tbody td:nth-child(2){
+		color: aliceblue;
+		font-weight: bold;
+		text-align: center;
+		width: 20%;
+	}	
+	#itinerary tbody td:nth-child(1){
+		color: white;
+		text-align: left;
+		width: 40%;
+	}	
+	input[type='range'] {
+		outline: none;
+		padding: 0px;
+		margin: 0px;
+		width: 80%;
+		-webkit-appearance: none;
+		border-radius: 0.5em;
+		box-shadow: inset 0 0 0.5em #333;
+		background-color: #00b3b3;
+		height: 0.8em;
+		vertical-align: middle;
+	}	
+	input[type='range']::-moz-range-track {
+		-moz-appearance: none;
+		border-radius: 0.5em;
+		border: none;
+		box-shadow: inset 0 0 0.5em #333;
+		background: #00b3b3;
+		height: 0.8em;
+		vertical-align: middle;
+	}	
+	input[type='range']::-ms-thumb  {
+		border-radius: 0.5em;
+		background-color: #00b3b3;
+		box-shadow:inset 0 0 0.5em rgba(000,000,000,0.5);
+		border: 1px solid #699;
+		height: 1.0em;
+		width: 1.0em;
+	}	
+	input[type='range']::-ms-track  {
+		height: 0.8em;
+		border-radius: 0.5em;
+		box-shadow: inset 0 0 0.5em #007580;
+		background-color: #cff;
+	}	
+	input[type='range']::-ms-fill-lower{
+		background-color: #0ff;
+	}
+	input[type='range']::-ms-fill-upper{
+		background-color: #00b3b3;
+	}
+	input[type="range"]::-ms-tooltip
+	{
+		display: none;
+	}	
+	input[type='range']::-ms-ticks-before{
+        color: #cff;
+		display: none;
+	}
+	input[type='range']::-webkit-slider-thumb {
+		-webkit-appearance: none !important;
+		border-radius: 1.75em;
+		background-color: #cff;
+		box-shadow:inset 0 0 1.0em rgba(000,000,000,0.5);
+		border: 1px solid #699;
+		height: 1.75em;
+		width: 1.75em;
+	}	
+	input[type='range']::-moz-range-thumb {
+		-moz-appearance: none;
+		border-radius: 1.75em;
+		background: #cff;
+		box-shadow:inset 0 0 1.0em rgba(000,000,000,0.5);
+		border: 1px solid #699;
+		height: 1.75em;
+		width: 1.75em;
+	}
+	div#waitDiv span{
+		color: #00ccdd;
+		font-weight: bold;
+	}
+	.transOff {
+		transition: none;
+	}	
+	a:link, a:visited, a:active, a:hover{
+		text-decoration: none;
+		font-style: normal;
+		font-weight: bold;
+	}	
+	a:hover {
+		font-style: italic;
+	} 
+	@media only screen 
+	and (min-device-width : 320px) 
+	and (max-device-width : 480px) {
+		body {
+			font-size: 14px;
+		}
+	}		
+	@media only screen
+		and (min-device-width : 640px) 
+		and (max-device-width : 1136px) {
+		body {
+			font-size: 16px;
+		}
+	}
+	@media only screen 
+	and (min-device-width : 480px) 
+	and (max-device-width : 800px) { 
+		body {
+			font-size: 14px;
+		}
+	}
+	@media only screen 
+	and (min-device-width : 320px) 
+	and (max-device-width : 568px) { 
+		body {
+			font-size: 14px;
+		}
+	}	
+	@media only screen 
+	and (min-device-width : 768px) 
+	and (max-device-width : 1024px) {
+		body {
+			font-size: 16px;
+		}
+	}		

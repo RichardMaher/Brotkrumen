@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html>
+<head>
+  
+<title>Travel Manager Demo</title>
+
+<meta http-equiv = "Content-Type" 
+	  content    = "text/html; charset=utf-8" />
+<meta name       = "author" 
+	  content    = "Richard Maher (c)"/>
+<meta name       = "description" 
+	  content    = "Wake up W3C/IETF! We *need* this!"/> 
+<meta name       = "application-name" 
+	  content    = "Brotkrumen">
+<meta name       = "apple-mobile-web-app-capable" 
+	  content    = "yes" />
+<meta name       = "mobile-web-app-capable" 
+	  content    = "yes" />
+<meta name       = "apple-touch-fullscreen" 
+	  content    = "yes" />
+<meta name       = "viewport" 
+	  content    = "width=device-width, user-scalable=no, initial-scale=1, minimum-scale=1, maximum-scale=1" />
+<meta name		 = "msapplication-tap-highlight" 
+	  content	 = "no" />	
+<meta name       = "apple-mobile-web-app-status-bar-style" 
+	  content    = "black">
+<meta name 	     = "format-detection" 
+	  content    = "telephone=no">	
+<meta name		 = "msapplication-TileImage" 
+	  content    = "gingerbreadhouse.png">
+<meta name		 = "msapplication-TileColor" 
+	  content    = "#00ccdd">
+
+<meta http-equiv = "cache-control"   content = "max-age=0" />
+<meta http-equiv = "cache-control"   content = "no-cache" />
+<meta http-equiv = "expires"         content = "0" />
+<meta http-equiv = "expires"         content = "Tue, 01 Jan 1980 1:00:00 GMT" />
+<meta http-equiv = "pragma"          content = "no-cache" />
+<meta http-equiv = "X-UA-Compatible" content = "IE=edge" />	
+	
+<link rel="shortcut icon"    sizes="128x128"    href="gingerbreadhouse.png" />
+<link rel="icon"        type="image/png"        href="gingerbreadhouse.png" />
+	
+<link rel="manifest" 	type="application/json"	href="brotkrumen.json">
+<link rel="stylesheet"	type="text/css" 		href="brotkrumen.css">   
+
+<script type="application/javascript" src="TravelManagerPolyfill.js" defer async></script>
+<script type="application/javascript" src="RegisterServiceWorker.js" defer async></script>
+<script type="application/javascript" src="HandleMap.js"             defer async></script>
+<script type="application/javascript">
+'use strict';
+
+const INTRO    = "GrussGott";
+const ERROR    = "error";
+const PAUSE    = "loiter";
+const ARRIVE   = "end";
+const KPH      = 3.6;
+
+const ONE_DAY  = 24*60*60000;
+const ONE_HOUR =    60*60000;
+const ONE_MIN  =       60000;
+const ONE_SEC  =        1000;
+
+var SWIcnt     = -1;
+var SWIhits    = [];
+var posCnt     = 0;
+var legCnt     = 0;
+var stopCnt    = 0;
+var path       = [];
+var legs       = [];
+	
+var logWindow, travelSubscription, kickOff, mainDiv,
+	contentDiv, headerDiv, btn, logScroll, logList,
+	outWorkerCnt, outPosCnt, map, mapDiv, lastPos,
+	firstPos, params, displayName, summary, mapDetails,
+	synchPoint1, synchPoint2, multiSpeed, replaySpeed,
+	zoomLevel, abort
+	;
+
+var	locReady = new Promise((resolve) => {synchPoint1 = resolve});	
+var	mapReady = new Promise((resolve) => {synchPoint2 = resolve});	
+
+document.addEventListener("DOMContentLoaded", isDOMIsGood);
+
+function isDOMIsGood(e){
+	displayName = 
+		document.querySelector('meta[name="application-name"]').content;
+
+	establish();
+
+// No RE-gressive limp-home mode for Ultimate Web Apps
+	if (!('geolocation'      in navigator &&
+    	  'serviceWorker'    in navigator &&
+		  'localStorage'     in window    &&
+		  'fetch'            in window    ))
+	{
+		setTimeout(compatibility,0);
+		return;
+	}		
+
+	document.addEventListener("visibilitychange", visibilityChange);
+	window.addEventListener('resize', resizeContent);
+	if (screen.addEventListener) screen.addEventListener
+						    ('msorientationchange', resizeContent);		
+
+//	Initialize the rest
+	headerDiv     = document.getElementById("headerDiv");
+	contentDiv    = document.getElementById("contentDiv");
+	mainDiv       = document.getElementById("mainDiv");
+	logWindow     = document.getElementById("logWindow");
+	logScroll     = document.getElementById("logScroll");
+	summary       = document.getElementById("summary");
+	mapDetails    = document.getElementById("mapDetails");
+	btn           = document.getElementById("btn");
+	zoomLevel     = document.getElementById("zoomLevelParam");
+	outWorkerCnt  = document.getElementById("outWorkerCnt");
+	outPosCnt     = document.getElementById("outPosCnt");
+	replaySpeed   = document.getElementById("replaySpeed");
+
+	logList       = document.createElement("ul");		
+	logList.style.listStyleType = "none";
+    logWindow.appendChild(logList);
+	
+	btn.addEventListener('click', buttonPressed);
+	
+// Start listening for messages.		
+	navigator.serviceWorker.addEventListener("message", SWMessage);
+	
+	appendEntry("Kick Off!","white", true);
+}
+function load(){
+// Rectitude check
+	try {
+		var es6 = eval('new Promise(resolve => {resolve(true)}) \
+			.then(ok => {										\
+				if (!ok) {										\
+					throw new Error("Oops!");					\
+				} else {										\
+					rectitude();								\
+				}}												\
+			)													\
+		    .catch( e => {reportError({header:"Dinosaur",		\
+						  message:"Your browser is too old"})})'
+		)
+	} catch (e) {
+		reportError({header:"Dinosaur",		
+					message:"Your browser is too old"})
+	}
+}	
+function compatibility(){
+	reportError({header:"Incompatible browser",
+				message:"Your browser must support ServiceWorkers, Fetch, and GeoLocation"});
+}
+function rectitude(){	
+// Up front permission dialogue, if necessary.
+	navigator.geolocation.getCurrentPosition(startPosition,locFail);
+}
+function startPosition(startPos){
+	getAmbience();
+	registerServiceWorker();
+	btn.disabled=false;
+	kickOff = Date.now();
+}
+function locFail(posError){
+	var outMessage = posError.message;
+	
+	switch(posError.code)
+	{
+		case posError.PERMISSION_DENIED:
+			outMessage += "<br>You denied permission to track your location"
+			break;
+		case posError.POSITION_UNAVAILABLE:
+			outMessage += "<br>Error obtaining Location"
+			break;
+		case posError.TIMEOUT:
+			outMessage += "<br>Timed-out while obtaining position,<br>No cached value available."		
+			break;
+		default:
+			outMessage += "<br>Code: "+posError.code		
+	}	
+	
+	reportError({header:"Geolocation error",
+				message:outMessage});
+}
+function visibilityChange(e){
+	appendEntry("Visibility changed to " + 
+				document.visibilityState,"aquamarine", true);
+}
+function resizeContent(e){
+	logWindow.scrollTop = logWindow.scrollHeight - logWindow.clientHeight;	
+}
+function SWMessage(e){
+	var resp = e.data;
+    console.log("Got SW command "+resp.cmd);
+	
+	if (resp.cmd == INTRO) {
+		SWIhits[++SWIcnt] = 0;
+		outWorkerCnt.innerHTML = SWIcnt + 1;
+		appendEntry("New ServiceWorker instance " + SWIcnt,"red", true);
+		return;
+	}
+
+	SWIhits[SWIcnt]++
+	
+	if (resp.cmd == ERROR) {
+		appendEntry("Error from SW  " + resp.data.message,"yellow", true);
+		return;
+	}
+	
+	var position = resp.data;	
+	var outMessage = new Date(position.timestamp).toLocaleTimeString() + " SWI" +
+					SWIcnt + " " + SWIhits[SWIcnt] + " " + resp.serialNum + " " +
+					resp.cmd + " lng: " + position.coords.longitude + " lat: " +
+					position.coords.latitude + " +/- " + position.coords.accuracy
+					;
+	outPosCnt.innerHTML = ++posCnt;
+	appendEntry(outMessage);	
+	
+	if (resp.cmd == ARRIVE) {
+		navigator.serviceWorker.removeEventListener("message", SWMessage);
+		setTimeout(outputSummary,0);
+		if (position.timestamp < lastPos.timestamp ||
+			   (
+				   position.coords.latitude  == lastPos.coords.latitude  &&
+				   position.coords.longitude == lastPos.coords.longitude 
+			   )
+			)
+			return;
+	}
+	
+	if (resp.cmd != PAUSE)
+	{
+		path[++legCnt] = 
+			new google.maps.LatLng(
+				position.coords.latitude,
+				position.coords.longitude);
+		
+		legs[legCnt] = {
+						distance: 0,
+						duration: position.timestamp,
+						didLoiter: false,
+						restTime: 0,
+						speed: 0
+						};
+						
+		if (legs[legCnt].duration < kickOff) legs[legCnt].duration = kickOff;
+
+		if (legCnt != 1){
+			var compLeg = legCnt - 1;			
+			legs[compLeg].distance = calculateDistance
+								(
+								path[legCnt].lat(),
+								path[legCnt].lng(),
+								path[compLeg].lat(),
+								path[compLeg].lng()
+								);
+			legs[compLeg].duration = position.timestamp - legs[compLeg].duration;
+			legs[compLeg].speed    = legs[compLeg].distance / legs[compLeg].duration * KPH;
+		} else {
+			firstPos = pos4Net(position);
+			synchPoint1();
+		}
+						
+	} else {
+		legs[legCnt].didLoiter = true;
+		stopCnt++;
+	}
+	
+	lastPos = pos4Net(position);
+}
+function unsubscribe(){
+	if (travelSubscription){
+		travelSubscription.unsubscribe()
+			.then(function(wasSubscribed){
+				log("Unsubscribed " + wasSubscribed);
+				travelSubscription = null;
+			})
+	} else {
+		reportError({header:"Internal error",
+					message:"You are not sunscribed"});
+	}
+}
+function outputSummary(){
+	document.removeEventListener("visibilitychange", visibilityChange);	
+	appendEntry("We've arrived - All done!","white", true);
+
+	document.getElementById("elapsedTime").innerHTML =
+			deltaDate(lastPos.timestamp - firstPos.timestamp);
+			
+	var crowFlies = calculateDistance
+					(
+					firstPos.coords.latitude,
+					firstPos.coords.longitude,
+					lastPos.coords.latitude,
+					lastPos.coords.longitude
+					);
+	var uom;
+	if (crowFlies < 1000) {
+		uom = "m";
+	} else {
+		crowFlies /= 1000;
+		uom = "km";
+	}
+	document.getElementById("crowFlies").innerHTML = crowFlies.toFixed(2) + uom;
+	
+	var totalDistance = 0;
+	var totalMotion   = 0;
+	var totalRestTime = 0;
+	var stopDistance  = 0;
+	
+	for (var i=1; i<legCnt; i++){
+		if (!legs[i].didLoiter) {
+			totalDistance += legs[i].distance;
+			totalMotion   += legs[i].duration;
+		} else {
+			stopDistance  += legs[i].distance;
+		}
+	}
+	
+	if (totalMotion <= 0 || totalDistance <= 0) {
+		reportError({header:"Insufficent Journey Feedback",
+					message:"You need to get out more"});
+		return;
+	}
+	
+	var averageSpeed = totalDistance / totalMotion;
+	
+	for (var i=1, s=stopCnt; s>0; i++){
+		if (legs[i].didLoiter) {
+			var averageDuration = legs[i].distance / averageSpeed;
+			legs[i].restTime    = legs[i].duration - averageDuration;
+			if (legs[i].restTime <= 0){
+				legs[i].restTime  = 0;
+				legs[i].didLoiter = false;
+				--stopCnt;
+			} else {
+				legs[i].duration = averageDuration;
+			}
+			totalMotion   += legs[i].duration;
+			totalRestTime += legs[i].restTime;
+			--s;
+		}
+	}
+	
+	if (stopCnt >= legCnt) {
+		reportError({header:"Insufficent Journey Feedback",
+					message:"No continuous movement"});
+		return;
+	}
+	
+	document.getElementById("restStops").innerHTML = stopCnt;
+	document.getElementById("restTime" ).innerHTML = deltaDate(totalRestTime);
+	document.getElementById("totalMotion" ).innerHTML = deltaDate(totalMotion);
+	
+	totalDistance += stopDistance;
+	if (totalDistance < 1000) {
+		uom = "m";
+	} else {
+		totalDistance /= 1000;
+		uom = "km";
+	}
+	document.getElementById("totalDistance").innerHTML = totalDistance.toFixed(2) + uom;
+
+	averageSpeed *= KPH * 1000;	
+	document.getElementById("averageSpeed").innerHTML = averageSpeed.toFixed(2) + "km/h";
+	
+	params.lastLocation = lastPos;
+    localStorage.setItem(displayName,JSON.stringify(params));
+	
+	summary.style.display = "";
+	btn.disabled=false;
+	document.body.style.cursor='auto';
+	mainDiv.scrollTop = summary.offsetTop;
+}
+function buttonPressed(e){
+	btn.blur();
+	btn.disabled=true;
+	
+	if (btn.value == "Arrive") {
+        document.body.style.cursor='wait';
+		btn.value="";
+		unsubscribe();
+		mapReady.then(function(){
+				btn.value = "Map Trip";
+				btn.disabled = false;
+			});
+	} else {	
+		if (btn.value == "Map Trip"){
+			path.shift();
+		    showMap();
+		} else {
+			if (btn.value == "Replay"){
+				showJourney();
+			} else {
+				if (btn.value == "Cancel"){
+					abort = true;
+					cleanUp();
+				}
+			}
+		}
+	}
+}
+function showMap(){
+	btn.value="Replay";
+	mapDetails.style.display = "";
+	mainDiv.scrollTop = mapDetails.offsetTop;	
+	showJourney();
+}
+function getAmbience(){	
+	const DEFAULT_PARAMS = 
+	{
+		accuracy: false,
+		lang: "en-AU",
+		lastLocation: 
+		{
+			coords:
+			{
+				latitude: -31.98118,
+				longitude: 115.81991,
+				altitude: 0,
+				accuracy: 0,
+				altitudeAccuracy: 0,
+				heading: 0,
+				speed: 0
+			},
+			timestamp: 0
+		},
+		currUser: null,
+		zoomLevel: 13,
+		replaySpeed: 10,
+		mapType: 2
+	}
+	
+	var ambience = localStorage.getItem(displayName);
+
+	if (!ambience)  {	
+		params = DEFAULT_PARAMS;
+		try {
+			localStorage.setItem(displayName,JSON.stringify(DEFAULT_PARAMS));
+		} catch (err) {
+			reportError({header:"Incompatible browser settings - Private Browsing",
+						message:displayName+" cannot maintain LocalStorage in Private Browsing mode."});
+			return;
+		}
+	} else {
+		params = JSON.parse(ambience);
+	}
+
+	replaySpeed.innerHTML = params.replaySpeed + "x";
+	document.getElementById("replayRange").value = params.replaySpeed;
+	multiSpeed = params.replaySpeed;
+	
+	for (var attr in params) {
+		var currParam = document.getElementById(attr + "Param");
+		if (!currParam) continue;
+		
+		console.log("Params["+attr+"] = " + params[attr] + " type = " + currParam.type);
+		
+		switch(currParam.type)
+		{
+			case "checkbox":
+				currParam.checked = params[attr];
+				break;
+			case "range":
+				currParam.value = Number(params[attr]);
+				break;
+			case "select-one":
+				for (var i=0; i<currParam.options.length; i++) {
+					if (currParam.options[i].value == params[attr]) {
+						currParam.selectedIndex = i;
+						break;
+					}
+				}
+				break;
+			default:
+				currParam.innerHTML = params[attr];
+		}
+	}
+}	
+function speedChanged(evt){
+	var lclTarget = evt.target || evt.srcElement;
+	lclTarget.blur();
+	multiSpeed = Number(lclTarget.value);
+	replaySpeed.innerHTML = multiSpeed + "x"
+	params.replaySpeed = multiSpeed;
+	localStorage.setItem(displayName,JSON.stringify(params));
+}
+function appendEntry(msg, colour, consoleLog){
+    var listItem = document.createElement("li");
+	listItem.style.color = colour;
+	
+	listItem.innerHTML = 
+		new Date().toLocaleTimeString() + " " + msg;
+							
+	logList.appendChild(listItem);
+	logWindow.scrollTop = logWindow.scrollHeight - logWindow.clientHeight;	
+	
+	if (consoleLog) log(msg);
+}
+function calculateDistance(lat1, lon1, lat2, lon2){
+	const EARTH_RADIUS = 6371000;
+ 	const toRad        = function(num){return num*Math.PI/180};
+	
+	var dLat = toRad(lat2 - lat1);
+	var dLon = toRad(lon2 - lon1);
+	var a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(toRad(lat1)) * 
+			Math.cos(toRad(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
+	var distance = EARTH_RADIUS * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+	return distance;
+}
+function pos4Net(pos){
+	return {
+		coords: {
+			latitude: pos.coords.latitude,
+			longitude: pos.coords.longitude,
+			accuracy: pos.coords.accuracy
+		},
+		timestamp: pos.timestamp
+	}
+}
+function deltaDate(inStamp){	
+	var deltaStamp = inStamp;
+	var deltaDays  = Math.floor(deltaStamp / ONE_DAY);
+	deltaStamp %= ONE_DAY; 
+	var deltaHours = Math.floor(deltaStamp / ONE_HOUR);
+	deltaStamp %= ONE_HOUR;
+	var deltaMins  = Math.floor(deltaStamp / ONE_MIN);
+	deltaStamp %= ONE_MIN;
+	var deltaSecs  = Math.round(deltaStamp / ONE_SEC);
+	
+	if (deltaHours < 10) {
+		deltaHours = "0" + deltaHours;
+	} 
+	if (deltaMins < 10) {
+		deltaMins = "0" + deltaMins;
+	} 
+	if (deltaSecs < 10) {
+		deltaSecs = "0" + deltaSecs;
+	} 
+
+	return (deltaDays+" "+deltaHours+":"+deltaMins+"."+deltaSecs);
+}
+function log(msg){
+	var outMessage = new Date().toUTCString() + " " + msg;
+	console.log(outMessage);
+}
+function establish() {
+	window.addEventListener("beforeunload",exitHndlr,true);
+}
+function exitHndlr(e) {
+	window.removeEventListener("beforeunload",exitHndlr);
+	setTimeout(establish, 0);
+//  TODO Check if logged in. Return question + e.returnValue
+	return;
+}
+function reportError(error) {
+	var header  = error.header  || "Error";
+	var message = error.message || "";
+	var topWindow=window.top.document.open();
+	topWindow.write("<!DOCTYPE html><html><body style='height: 100%;'><hr><h1>" + header + "</h1><hr>");
+	topWindow.write("<h2>Please contact Support for assistance.</h2><br />");
+	topWindow.write('<p style="color:red">' + message + "</p></body></html>");
+	topWindow.close();
+}
+</script>
+<script type="application/javascript"                                defer async
+src="https://maps.googleapis.com/maps/api/js?key=AIzaSyAQ6vdsLYVFb_XvvUK_bL0erJ07fQIovgI&callback=mapsLoaded">
+</script>
+</head>
+<body	onload   = "load(event)" 
+		onunload = "(function(){})()"> <!-- Turn off back button cache -->
+  <div class="wholeScreen">
+    <div id="headerDiv">
+		<table id="header">
+			<tbody style="width:100%; height: 100%;">
+				<tr style="width:100%; height: 100%; white-space: nowrap;">
+					<td style="width: 80%; text-align: left;"><span class="header">Brotkrumen</span></td>
+					<td style="text-align: right; width: 20%;">
+						<div><input id="btn" type="button"
+								value="Arrive" disabled="disabled"/></div>
+					</td>
+				</tr>
+			</tbody>
+		</table>      
+    </div>
+    <div id="statsDiv">
+		<table id="stats">
+			<tbody style="width:100%;">
+				<tr style="width:100%;">
+					<td style="width: 37%; text-align: right;">
+						<span>Worker Instances</span></td>
+					<td style="width: 13%; text-align: center; vertical-align: middle;">
+						<span id="outWorkerCnt" style="color: white;">0</span></td>
+					<td style="width: 13%; text-align: center; vertical-align: middle;">
+						<span id="outPosCnt" style="color: white;">0</span></td>
+					<td style="width: 37%; text-align: left;">
+						<span>Position Updates</span></td>
+				</tr>
+			</tbody>
+		</table>      
+	</div>
+    <div id="contentDiv">
+	   <main id="mainDiv">
+		   <div id="logScroll">
+			  <div id="logWindow" class="log"></div>
+		   </div>
+		   <div id="summary" style="display: none;">
+				<table id="itinerary">
+					<thead>
+						<tr>
+							<th colspan=3 style="width: 100%; text-align: center;">
+								<span class="subHeader">Itinerary</span>
+							</th>
+						</tr>
+					</thead
+					<tbody>
+						<tr>
+							<td><span>Elapsed Time</span></td><td>:</td>
+							<td><span id="elapsedTime" style="text-align: right;">0 00:00.00</span></td>
+						</tr>
+						<tr>
+							<td><span>Motion Time</span></td><td>:</td>
+							<td><span id="totalMotion" style="text-align: right;">0 00:00.00</span></td>
+						</tr>
+						<tr>
+							<td><span>Rest Time</span>	</td><td>:</td>
+							<td><span id="restTime" style="text-align: right;">0 00:00.00</span></td>
+						</tr>
+						<tr>
+							<td><span>Rest Stops</span></td><td>:</td>
+							<td><span id="restStops" style="text-align: right;">0</span></td>
+						</tr>
+						<tr>
+							<td><span>Total Distance</span></td><td>:</td>
+							<td><span id="totalDistance" style="text-align: right;">0</span></td>
+						</tr>
+						<tr>
+							<td><span>Crow Flies</span></td><td>:</td>
+							<td><span id="crowFlies" style="text-align: right;">0</span></td>
+						</tr>
+						<tr>
+							<td><span>Average Speed</span></td><td>:</td>
+							<td><span id="averageSpeed" style="text-align: right;">0</span></td>
+						</tr>
+					</tbody>
+				</table>      
+		   </div>
+		   <div id="mapDetails" style="width:100%; height: 100%; position:absolute; top: -100%; visibility: hidden;">
+				<table id="mapTable" style="width:100%; height: 100%; margin-top: 1em;">
+					<tbody style="width:100%; height: 100%;">
+						<tr style="width:100%; height: 50%;">
+							<td rowspan=3 style="width: auto; text-align: left;">
+								<div id="mapDiv"></div>
+							</td>
+							<td style="width: 5em; text-align: center;">
+								<table id="zoomTable" style="width:100%; height: 100%;">
+									<tbody style="width:100%; height: 100%;">
+										<tr style="width:100%; height: 40%;">
+											<td style="width: auto; text-align: center;">
+												<div><input id="zoomIn" type="button"
+												value="+"/></div>
+											</td>
+										</tr>
+										<tr style="width:100%; height: 20%;">
+											<td style="width: auto; text-align: center;">
+												<span>zoom</span><br /><span id="zoomLevelParam"></span>
+											</td>
+										</tr>
+										<tr style="width:100%; height: 40%;">
+											<td style="width: auto; text-align: center;">
+												<div><input id="zoomOut" type="button"
+												value="-"/></div>
+											</td>
+										</tr>
+									</tbody>
+								</table> 
+							</td>
+						</tr>
+						<tr style="width:100%; height: 15%;">
+							<td style=" text-align: center;">
+								<div><input id="mapToggle" type="button" value="Tiles"/></div>
+							</td>
+						</tr>
+						<tr style="width:100%; height: auto">
+							<td rowspan=2 style="width: auto; text-align: center;">
+							    <div style=" text-align: center;">replay<br />speed</div><br />
+								<span id="replaySpeed"></span>
+							</td>
+						</tr>
+						<tr style="width:100%; height: 3.0em;">
+							<td style="width: auto; text-align: center;">
+								<input id="replayRange" type="range" min="1" max="50" step="1" 
+									onchange="speedChanged(event);" oninput="speedChanged(event);" />
+							</td>
+						</tr>
+					</tbody>
+				</table>      
+		   </div>
+	   </main>
+	</div>   
+ </div>
+</body>
+</html>
