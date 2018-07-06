@@ -27,10 +27,16 @@ Files in this directory: -
 
 Just copy all of these files to your Web Server and navigate to /TravelManager.html and then save the Ultimate Web App to your homescreen. Once the Web App is active, go for a walk, ride, or drive and watch the Service-Worker-Instance to Position-Update ratio scream at you that "This *is* the solution!" to the background geolocation conundrum.
 
-`
-brotkrumen.css              Style Sheet
-
-webapp.json                 Manifest
+<table>
+<tbody>
+<tr>
+<td>brotkrumen.css</td><td>Style Sheet</td>
+</tr>
+<tr>
+<td>webapp.json</td><td>Manifest</td>
+</tr>
+</tbody>
+</table>
 
 echo.js                     ServiceWorker using Message Events to simulate the TravelEvents that need to come from UA.
 
@@ -44,11 +50,11 @@ registerserviceworker.js    ServiceWorker Registration and TravelManager subscri
 
 striped-witch-hat.png       Destination marker icon.
 
-sw745.html                  Uncensored copy of Issue 745 from https://github.com/w3c/ServiceWorker/issues Look from June 7 to see what the feline fetish mafia tried to hide.
+sw745.html                  Uncensored copy of Issue 745 from https://github.com/w3c/ServiceWorker/issues Look from June 7.
 
 travelmanager.html          Demo Web App that interacts with TravelManager.
 
 travelmanagerpolyfill.js    All the UA developers have to do to support background geolocation. How hard can it be?
-`
+
 
 All feedback welcomed! 
