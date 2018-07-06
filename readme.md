@@ -35,26 +35,35 @@ Just copy all of these files to your Web Server and navigate to /TravelManager.h
 <tr>
 <td>webapp.json</td><td>Manifest</td>
 </tr>
+<td>echo.js</td><td>ServiceWorker using Message Events to simulate the TravelEvents that need to come from UA.</td>
+</tr>
+<tr>
+<td>gingerbreadhouse.png</td><td>Shortcut/Homescreen icon</td>
+</tr>
+<tr>
+<td>handlemap.js</td><td>The code needed to plot and replay the trip onto Google Maps. (Uses CSS Transitions for a 'smooth' trip)</td>
+</tr>
+<tr>
+<td>hg.png</td><td>Our protagonists</td>
+</tr>
+<tr>
+<td>registerserviceworker.js</td><td>ServiceWorker Registration and TravelManager subscription</td>
+</tr>
+<tr>
+<td>striped-witch-hat.png</td><td>Destination marker icon.</td>
+</tr>
+<tr>
+<td>sw745.html</td><td>Uncensored copy of Issue 745 from https://github.com/w3c/ServiceWorker/issues Look from June 7.</td>
+</tr>
+<tr>
+<td>travelmanager.html</td><td>Demo Web App that interacts with TravelManager.</td>
+</tr>
+<tr>
+<td>travelmanagerpolyfill.js</td><td>All the UA developers have to do to support background geolocation. How hard can it be?</td>
+</tr>
+<tr>
 </tbody>
 </table>
-
-echo.js                     ServiceWorker using Message Events to simulate the TravelEvents that need to come from UA.
-
-gingerbreadhouse.png        Shortcut/Homescreen icon
-
-handlemap.js                The code needed to plot and replay the trip onto Google Maps. (Uses CSS Transitions for a 'smooth' trip)
-
-hg.png                      Our protagonists
-
-registerserviceworker.js    ServiceWorker Registration and TravelManager subscription
-
-striped-witch-hat.png       Destination marker icon.
-
-sw745.html                  Uncensored copy of Issue 745 from https://github.com/w3c/ServiceWorker/issues Look from June 7.
-
-travelmanager.html          Demo Web App that interacts with TravelManager.
-
-travelmanagerpolyfill.js    All the UA developers have to do to support background geolocation. How hard can it be?
 
 
 All feedback welcomed! 
