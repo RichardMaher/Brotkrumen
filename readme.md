@@ -29,15 +29,25 @@ Just copy all of these files to your Web Server and navigate to /TravelManager.h
 
 `
 brotkrumen.css              Style Sheet
+
 webapp.json                 Manifest
+
 echo.js                     ServiceWorker using Message Events to simulate the TravelEvents that need to come from UA.
+
 gingerbreadhouse.png        Shortcut/Homescreen icon
+
 handlemap.js                The code needed to plot and replay the trip onto Google Maps. (Uses CSS Transitions for a 'smooth' trip)
+
 hg.png                      Our protagonists
+
 registerserviceworker.js    ServiceWorker Registration and TravelManager subscription
+
 striped-witch-hat.png       Destination marker icon.
+
 sw745.html                  Uncensored copy of Issue 745 from https://github.com/w3c/ServiceWorker/issues Look from June 7 to see what the feline fetish mafia tried to hide.
+
 travelmanager.html          Demo Web App that interacts with TravelManager.
+
 travelmanagerpolyfill.js    All the UA developers have to do to support background geolocation. How hard can it be?
 `
 
