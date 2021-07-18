@@ -29,19 +29,108 @@
 	    -ms-overflow-style: none;
         -ms-content-zooming: none;
 		touch-action: manipulation;
-	}		
-    body{
-		background-color: #00ccdd; 
-		color: black;
-        font-family: Arial, sans-serif;
-		font-size: 14px;
-		pointer-events: auto;
-		display: flex;
-		flex-direction: column;
+	}
+	html {
+		min-height: -webkit-fill-available;
+		max-height: -webkit-fill-available;
 		height: 100vh;
-		box-shadow: inset 0 0 0.8em black;
-		padding: 1em;
-	} 	
+		height: -moz-available;          
+		height: -webkit-fill-available;  
+		height: fill-available;
+	}
+    body {
+        overscroll-behavior: none;
+        background-color: #00ccdd;
+        color: black;
+        font-family: Arial, sans-serif;
+        font-size: 14px;
+        pointer-events: auto;
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+		min-height: -webkit-fill-available;
+        min-width: 100vw;
+		min-width: -webkit-fill-available;
+		height: 100vh;
+		height: -moz-available;          
+		height: -webkit-fill-available;  
+		height: fill-available;
+		width: 100vw;
+		width: -moz-available;          
+		width: -webkit-fill-available;  
+		width: fill-available;
+        box-shadow: inset 0 0 0.8em black;
+        padding: 1em;
+    }
+	#modalWait {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex: 1 1 100%;
+		min-width: 100%;
+		min-height: 100%;
+		position: fixed;
+		left: 0;
+		top: 0;
+		background-color: rgba(255,255,255,0.3);
+		z-index: 9;
+		cursor: not-allowed;
+		height: 100%;
+		width: 100%;
+	}
+	#modalWait div {
+    	flex: 1 1 50%;
+		order: 1;
+        max-width: 50%;
+        max-height: 50%;
+		background-color: black;
+		color: white;
+		cursor: default;
+        overflow: auto;
+		text-align: center;
+		padding: 0.5em;
+		display: none;
+	}
+	#modalWait div p {
+		display: block;
+  		text-align:justify;
+		word-wrap: break-word;
+		margin: 0.5em;
+  	}
+	#keyPaste[contenteditable="true"]:hover {
+		background-color: gray;
+		font-style: normal;
+	}
+	#keyPaste {
+		background-color: #00ccdd;
+		font-style: italic;
+		border-radius: 1.0em;
+		padding: 0px 0.5em;
+		display: block;
+		margin-bottom: 0.5em;
+		white-space: nowrap;
+		overflow: auto;
+	}
+	#keyPaste:focus {
+		background-color: gray;
+		caret-color: transparent;
+	}
+	#keyBody {
+		display: block;
+	}
+	#keyBody tr {
+		display: block;
+		width: 100%;
+	}
+	#keyBody tr td {
+		display: block;
+	}
+	[contenteditable] {
+		outline: 0px solid transparent;
+	}
+	::selection {
+		cursor: none;
+	}
 	.wholeScreen{
 		display: flex;
 		flex-direction: column;
@@ -57,7 +146,7 @@
 		border-radius: 1.0em;
 		box-shadow: inset 0 0 0.8em #eff;
 		align-items: center;
-		flex: 10 0 10;
+		flex: 6 0;
 	}
     div#statsDiv{
 		display: flex;
@@ -72,9 +161,10 @@
 	}		
 	div#contentDiv{
 		display: flex;
-		flex: 82;
+		flex: 86;
 		order: 3;
 		border-radius: 1.0em;
+        overflow: auto;
     }
     main {
         width: 100%;
@@ -83,13 +173,6 @@
         scroll-behavior: smooth;
         scroll-snap-type: y mandatory;
     }	
-	table{
-        border-collapse: collapse;
-		border-spacing: 0px;
-	}	
-	table#header{
-		width: 100%;
-	}
 	.header{
 		font-family: Georgia;
 		font-size: 2.5em;
@@ -120,7 +203,7 @@
         border-radius: 1.0em;
         scroll-snap-align: start;
     }	
-	ul{
+	ul {
 		padding: 0px;	
 		margin: 0px;	
 		display: inline-block;
@@ -145,13 +228,34 @@
         width: 100%;
         scroll-behavior: smooth;
         scroll-snap-align: start;
+        overflow: auto;
     }
     #mapDetails {
         height: 100%;
         width: 100%;
         scroll-behavior: smooth;
         scroll-snap-align: start;
-    }	
+        overflow: auto;
+    }
+	.mapButton {
+		height: 4em;
+		width: 4em;
+		white-space: normal;
+		word-wrap: break-word;
+	}
+	#noMaps {
+		background-image:url('edna.jpg');
+		background-size: cover;
+		background-position: center;
+		border: 1px solid #00ccdd
+	}
+	#loadMaps {
+		background-size: cover;
+		background-image: url('googlemaps.png');
+		background-position: center;
+		cursor: not-allowed;
+		border: 1px solid #00ccdd
+	}
 	input[type="button"]{
 		cursor: pointer;
 		border-radius: 0.66em;
@@ -310,10 +414,34 @@
 		text-decoration: none;
 		font-style: normal;
 		font-weight: bold;
+		color: darkturquoise;
 	}	
 	a:hover {
 		font-style: italic;
-	} 
+	}
+	table {
+		border-collapse: collapse;
+		border-spacing: 0px;
+		width: 100%;
+		height: 100%;
+	}
+	table#header {
+		width: 100%;
+	}
+
+	.warnUser {
+		animation-name: clickShrink;
+		animation-duration: 0.3s;
+	}
+	@keyframes clickShrink {
+		50% {
+			transform: scale(0.9);
+		}
+
+		100% {
+			transform: scale(1.0);
+		}
+	}
 	@media only screen 
 	and (min-device-width : 320px) 
 	and (max-device-width : 480px) {

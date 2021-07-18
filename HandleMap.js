@@ -13,8 +13,8 @@ var progressPath   			= [];
 var protagonists, endMarker, mapDiv, HandG, currStep,
 	canTalk, bounce, drop, dirPoly, stepPoly, mudMap,
 	mapTypeArray, hat, HGDiv, HGImg, infoWindow,
-	countDown, markerDivs, observer, nextFunc, foot,
-	plotTimer, zoomIn, zoomOut, finish, ouch
+	countDown, markerDiv, observer, nextFunc, foot,
+	zoomIn, zoomOut, finish, ouch
 	;
 
 function mapsLoaded(){
@@ -159,7 +159,6 @@ function makeMap(){
 					
 	hat = new google.maps.Marker(
 		{
-		animation: bounce,
 		map: map, 
 		draggable: false,
 		title: "Witch", 
@@ -205,11 +204,11 @@ function makeMap(){
 	
 	if (canTalk){
 		finish       = new SpeechSynthesisUtterance(
-								"Get in the oven precious.");
+								"Get in the oven, precious.");
 		finish.rate  = 1.2;
 		finish.pitch = 0.5;
 		finish.addEventListener('error', speakError);
-		ouch         = new SpeechSynthesisUtterance("Ow! That hurt.");
+		ouch         = new SpeechSynthesisUtterance("Ow that hurt!");
 		ouch.rate    = 1.5;
 		ouch.pitch   = 1.5;
 		ouch.addEventListener('error', speakError);
@@ -234,7 +233,6 @@ function showJourney(){
 				lastPos.coords.latitude,
 				lastPos.coords.longitude)); 
 	hat.setVisible(true);
-	hat.setAnimation(bounce);
 		
 	HandG.setPosition(
 		new google.maps.LatLng(
@@ -267,15 +265,16 @@ function plotTrip(){
 	stepPoly.setPath(progressPath);
 	stepPoly.setVisible(true);
 	currStep = 1;
-	markerDivs = [];
 	var markerImgs = document.querySelectorAll(MARKER_SELECTOR);
-	for (var i=0; i<markerImgs.length; i++){
-		console.log(markerImgs[i].src);
-		markerDivs[i] = markerImgs[i].parentNode;
-		markerDivs[i].style.transitionDuration = "0s";
-		markerDivs[i].style.transitionProperty = "left, top";
-		markerDivs[i].style.transitionTimingFunction = "linear";
-	}
+	if (markerImgs.length != 1)
+		reportError({
+			header: "Error processing Google Maps marker.",
+			message: "Expecting one and only one Hansel and Gretal. Found: " + markerImgs.length
+		});
+	markerDiv = markerImgs[0].parentNode;
+	markerDiv.style.transitionDuration = "0s";
+	markerDiv.style.transitionProperty = "left, top";
+	markerDiv.style.transitionTimingFunction = "linear";
 	
 	setTimeout(plotStep,0);
 	abort = false;
@@ -292,6 +291,7 @@ function plotStep(){
 		infoWindow.open(map,HandG);
 		showInterval();
 	} else {
+		console.log("1");
 		plotIt();
 	}
 }
@@ -303,6 +303,7 @@ function showInterval(){
 	countDown -= (ONE_SEC * multiSpeed);
 	if (countDown < 1){
 		infoWindow.close();	
+		console.log("2");
 		plotIt();
 	} else {
 		setTimeout(showInterval, ONE_SEC);
@@ -310,34 +311,29 @@ function showInterval(){
 }
 function plotIt(){
 	if (abort) return;
+	console.log("in plot");
 
 	progressPath.push(path[currStep]);
 	stepPoly.setPath(progressPath);
-	map.panTo(path[currStep]);
+//	map.panTo(path[currStep]);
 	var transitionMS = legs[currStep].duration / multiSpeed;
-	for (var i=0; i<markerDivs.length; i++){
-		markerDivs[i].style.transitionDuration = transitionMS + "ms";
-	}
-	HandG.setPosition(path[currStep])
+	markerDiv.style.transitionDuration = transitionMS + "ms";
+	HandG.setPosition(path[currStep]);
 
-	if (++currStep >= path.length)
+	if (++currStep >= path.length) {
+		markerDiv.removeEventListener('transitionend', nextFunc);
 		nextFunc = cleanUp;
-	
-	plotTimer = setTimeout(nextFunc,transitionMS);
+	}
+	markerDiv.addEventListener('transitionend', nextFunc);
 }
-function cleanUp(){
+function cleanUp() {
+	console.log("in cleanUp");
+	markerDiv.removeEventListener('transitionend', cleanUp);
 	infoWindow.close();
-	hat.setAnimation();
+	hat.setAnimation(); 
 	btn.value = "Replay";
 	btn.disabled = false;
-	clearTimeout(plotTimer);
-	for (var i=0; i<markerDivs.length; i++){
-		markerDivs[i].style.transitionDuration = "0s";
-	}
-	HandG.setPosition(
-		new google.maps.LatLng(
-				lastPos.coords.latitude,
-				lastPos.coords.longitude)); 
+	markerDiv.style.transitionDuration = "0s";
 	HandG.setVisible(false);
 	map.setOptions({gestureHandling: "cooperative"});
 	zoomIn.style.display  = "";

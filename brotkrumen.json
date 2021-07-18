@@ -5,11 +5,18 @@
   "icons": [
     {
       "src": "gingerbreadhouse.png",
-      "sizes": "48x48 128x128 144x144",
-      "type": "image/png"
+      "sizes": "48x48 128x128 144x144 192x192 512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "gingerbreadhouse.png",
+      "sizes": "48x48 128x128 144x144 192x192 512x512",
+      "type": "image/png",
+      "purpose": "maskable"
     }
   ],
-  "start_url": "TravelManager.html",
+  "start_url": "/travelmanager.html",
   "background_color": "#00ccdd",
   "theme_color": "#00ccdd",
   "display": "fullscreen"

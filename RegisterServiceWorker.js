@@ -8,7 +8,7 @@
 function registerServiceWorker()
 {	
 // Make sure SW is there
-	navigator.serviceWorker.register('echo.js', {scope: './'})
+	navigator.serviceWorker.register('/echo.js')
 		.then(reg => {
 				window.addEventListener("unload",unsubscribeTravelManager);
 				console.log('SW Registered');
@@ -51,11 +51,6 @@ function unsubscribeTravelManager(e)
 	shutdown
 		.then(success => {
 				console.log("Unsubscribed from TravelManager = " + success);
-				navigator.serviceWorker.ready
-					.then(reg => {
-							reg.unregister()
-							.then(success => {console.log('SW Unregistered = ' + success)})			
-							})			
 			})
 		.catch(err => console.log("Couldn't unregister SW " + err))
 }

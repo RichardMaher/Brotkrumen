@@ -4,19 +4,70 @@
  * author.        Richard Maher.
  */
  
-	var   doryRegister  = [];            // Meet someone new every day.
-	const INTRO         = "GrussGott";   // Tell clients we're new.
-	const FLEET_MANAGER = "/Fleet/Move"; // Starship control.
+var   doryRegister  = [];            // Meet someone new every day.
+const INTRO         = "GrussGott";   // Tell clients we're new.
+const FLEET_MANAGER = "/Fleet/Move"; // Starship control.
+const CACHE_NAME    = "BrotkrumenV1.1"
 	
-	self.addEventListener('install', function(e) 
-	{
-		e.waitUntil(self.skipWaiting());
+self.addEventListener('install',
+    function (e) {
+        e.waitUntil(
+            caches.open(CACHE_NAME).then(function (cache) {
+				return cache.addAll([
+					'/',
+					'travelmanager.html',
+                    '/hg.png',
+                    '/gingerbreadhouse.png',
+					'/striped-witch-hat.png',
+					'/googlemaps.png',
+					'/edna.jpg',
+                    '/brotkrumen.css',
+                    '/echo.js',
+					'/RegisterServiceWorker.js',
+                    '/brotkrumen.json',
+                    '/TravelManagerPolyfill.js',
+                    '/HandleMap.js'
+                ]).then(() => self.skipWaiting());
+            })
+        );
 	});
 	
 	self.addEventListener('activate', function(e) 
 	{
-		e.waitUntil(self.clients.claim());
-	});	
+        e.waitUntil(
+            caches.keys().then((keyList) => {
+                return Promise.all(keyList.map((key) => {
+                    if (key !== CACHE_NAME) {
+                        console.log('Removing cache', key);
+                        return caches.delete(key);
+                    }
+                }));
+            })
+        );
+
+        e.waitUntil(self.clients.claim());
+    });
+
+    self.addEventListener('fetch', function (e) {
+
+		console.log(e.request.url + " my origin " + self.location.origin);
+		if (e.request.url.startsWith(self.location.origin)) {
+			e.respondWith(
+				caches.match(e.request.url, { ignoreVary: true }).then(function (response) {
+					console.log("Request " + e.request.url);
+					if (response) {
+						console.log("Response " + response.url);
+					} else
+						console.log("No MATCH");
+
+					return response || fetch(e.request);
+
+				})
+
+			);
+		} else
+			return fetch(e.request);
+    });
 /*
  * The following MessageEvent handler is simulating the proposed TravelEvent
  * that will be sourced from the UA, or other daemon, that is monitoring 
