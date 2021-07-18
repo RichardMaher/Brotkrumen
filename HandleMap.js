@@ -159,6 +159,7 @@ function makeMap(){
 					
 	hat = new google.maps.Marker(
 		{
+		animation: bounce,
 		map: map, 
 		draggable: false,
 		title: "Witch", 
