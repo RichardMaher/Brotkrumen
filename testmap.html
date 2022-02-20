@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Simple Markers</title>
+	<script type="application/javascript">
+		'use strict';
+		function initMap() {
+		  const myLatLng = { lat: -25.363, lng: 131.044 };
+		  const map = new google.maps.Map(document.getElementById("map"), {
+			zoom: 4,
+			center: myLatLng,
+		  });
+
+		  new google.maps.Marker({
+			position: myLatLng,
+			map,
+			title: "Hello World!",
+		  });
+		}
+	</script>
+    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+	<style type="text/css">
+		#map {
+		  height: 100%;
+		}
+
+		/* Optional: Makes the sample page fill the window. */
+		html,
+		body {
+		  height: 100%;
+		  margin: 0;
+		  padding: 0;
+		}
+	</style>
+  </head>
+  <body>
+    <div id="map"></div>
+
+    <!-- Async script executes immediately and must be after any DOM elements used in callback. -->
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&callback=initMap&v=weekly&channel=2"
+      async
+    ></script>
+  </body>
+</html>

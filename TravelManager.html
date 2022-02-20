@@ -83,7 +83,7 @@
         synchPoint1, synchPoint2, multiSpeed, replaySpeed,
         zoomLevel, abort, fudgeLock, modalWait, noWorries,
         keyPaste, loadMaps, noMaps, userKey, synchPoint2Fail,
-        replayRange, lockConsent, okay, loadError
+        replayRange, lockConsent, okay, getStyle, loadError
         ;
 
     var	locReady = new Promise((resolve) => {synchPoint1 = resolve});
@@ -95,6 +95,8 @@
         if ((e.target || e.srcElement).id != "keyPaste")
             e.preventDefault();
     });
+
+    getStyle = getStyleMethod();
 
     mapReady.then(()=>{},()=>{});
 
@@ -114,15 +116,14 @@
             return;
         }
 
-        window.addEventListener('beforeinstallprompt', function(event) {
+        window.addEventListener('beforeinstallprompt', function(e) {
             e.preventDefault();
           // Stash the event so it can be triggered later.
             console.log("***Have install event");
-            alert("before install");
         });
 
         window.addEventListener('appinstalled', function() {
-          alert('Thank you for installing Brotkrumen!');
+            console.log("***User has installed");
         });
 
         document.addEventListener("visibilitychange", visibilityChange);
@@ -158,8 +159,6 @@
         logList.style.listStyleType = "none";
         logWindow.appendChild(logList);
 
-        replayRange.addEventListener("change", speedChanged);
-        replayRange.addEventListener("input", speedChanged);
         noWorries.addEventListener("click", lockApproved);
         keyPaste.addEventListener("keyDown", stopPress);
         keyPaste.addEventListener("cut", stopEvent);
@@ -172,7 +171,10 @@
         okay.addEventListener('click', openUp);
 
         keyPaste.innerText = KEY_HINT;
-        lockConsent.style.display = "block";
+        if (navigator.wakeLock)
+            lockConsent.style.display = "block";
+        else
+            setTimeout(lockApproved, 0);
 
     // Start listening for messages.
         navigator.serviceWorker.addEventListener("message", SWMessage);
@@ -209,7 +211,7 @@
 
         try {
             localStorage.removeItem(MAPS_API_KEY);
-        } catch (e) {};
+        } catch (err) {};
 
         var mapsKey = localStorage.getItem(MAPS_API_KEY);
         if (!mapsKey){
@@ -312,6 +314,7 @@
             keyPaste.style.backgroundColor = "red";
             keyPaste.classList.add('warnUser');
             keyPaste.addEventListener('animationend', resetKeyPaste);
+            keyPaste.innerText = KEY_HINT;
             return;
         }
         let enableKey = localStorage.getItem(MAPS_API_KEY);
@@ -333,7 +336,7 @@
     function resetKeyPaste(e) {
         keyPaste.style.backgroundColor = "#00ccdd";
         keyPaste.classList.remove('warnUser');
-        keyPaste.removeEventListener('animationend',resetKkeyPaste);
+        keyPaste.removeEventListener('animationend',resetKeyPaste);
     }
     function SWMessage(e){
         var resp = e.data;
@@ -462,7 +465,7 @@
         }
 
         if (totalMotion <= 0 || totalDistance <= 0) {
-            reportError({header:"Insufficent Journey Feedback",
+            reportError({header:"Insufficient Journey Feedback",
                         message:"You need to get out more"});
             return;
         }
@@ -487,7 +490,7 @@
         }
 
         if (stopCnt >= legCnt) {
-            reportError({header:"Insufficent Journey Feedback",
+            reportError({header:"Insufficient Journey Feedback",
                         message:"No continuous movement"});
             return;
         }
@@ -583,6 +586,9 @@
             replaySpeed: 10,
             mapType: 2
         }
+
+        replayRange.addEventListener("change", speedChanged);
+        replayRange.addEventListener("input", speedChanged);
 
         var ambience = localStorage.getItem(displayName);
 
@@ -692,6 +698,16 @@
         }
 
         return (deltaDays+" "+deltaHours+":"+deltaMins+"."+deltaSecs);
+    }
+    function getStyleMethod() {
+        if (window.getComputedStyle) {
+            return function (el) {
+                return window.getComputedStyle(el, null);
+            }
+        }
+        return function (el) {
+            return el.currentStyle;
+        }
     }
     function log(msg){
         var outMessage = new Date().toUTCString() + " " + msg;

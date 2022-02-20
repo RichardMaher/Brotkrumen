@@ -8,13 +8,16 @@
 const MARKER_SELECTOR       = "img[src*='hg.png'";
 const MARKER_SRC            = "hg.png"
 
-var progressPath   			= [];
+var progressPath	= [];
+var markerImgs		= [];
+var touchDown		= false;
 
 var protagonists, endMarker, mapDiv, HandG, currStep,
 	canTalk, bounce, drop, dirPoly, stepPoly, mudMap,
 	mapTypeArray, hat, HGDiv, HGImg, infoWindow,
 	countDown, markerDiv, observer, nextFunc, foot,
-	zoomIn, zoomOut, finish, ouch
+	zoomIn, zoomOut, finish, ouch, transitionMS,
+	travelListener
 	;
 
 function mapsLoaded(){
@@ -137,8 +140,8 @@ function makeMap(){
 		};
 
 	map = new google.maps.Map(mapDiv, myMapOptions);
-	google.maps.event.addListenerOnce(map,'tilesloaded',gotTiles);
-	google.maps.event.addListener(map,'zoom_changed',function()
+	google.maps.event.addListenerOnce(map,'tilesloaded', gotTiles);
+	google.maps.event.addListener(map,'zoom_changed', function()
 			{
 				var currZoom = map.getZoom();
 				zoomLevel.innerHTML = currZoom;
@@ -159,29 +162,24 @@ function makeMap(){
 					
 	hat = new google.maps.Marker(
 		{
-		animation: bounce,
-		map: map, 
-		draggable: false,
-		title: "Witch", 
-		zIndex: 13, 
-		visible: false, 
-		icon: endMarker, 
-		optimized: false
+			map: map, 
+			draggable: false,
+			title: "Witch", 
+			zIndex: 13, 
+			visible: true, 
+			icon: endMarker, 
+			optimized: false
 		});
 		
 	HandG = new google.maps.Marker(
 		{
-		position: new google.maps.LatLng(
-						firstPos.coords.latitude,
-						firstPos.coords.longitude), 
-		animation: drop,
-		map: map, 
-		draggable: false,
-		title: "HandG", 
-		zIndex: 12, 
-		visible: false, 
-		icon: protagonists, 
-		optimized: false
+			map: map, 
+			draggable: false,
+			title: "HandG", 
+			zIndex: 12, 
+			visible: true, 
+			icon: protagonists, 
+			optimized: false
 		});
 		
     infoWindow = new google.maps.InfoWindow();
@@ -209,7 +207,7 @@ function makeMap(){
 		finish.rate  = 1.2;
 		finish.pitch = 0.5;
 		finish.addEventListener('error', speakError);
-		ouch         = new SpeechSynthesisUtterance("Ow that hurt!");
+		ouch         = new SpeechSynthesisUtterance("Ow; that hurt!");
 		ouch.rate    = 1.5;
 		ouch.pitch   = 1.5;
 		ouch.addEventListener('error', speakError);
@@ -229,36 +227,31 @@ function showJourney(){
 	zoomOut.style.display = "none";
 	zoomIn.style.display  = "none";
 	
-	hat.setPosition(
-		new google.maps.LatLng(
-				lastPos.coords.latitude,
-				lastPos.coords.longitude)); 
-	hat.setVisible(true);
-		
-	HandG.setPosition(
-		new google.maps.LatLng(
-				firstPos.coords.latitude,
-				firstPos.coords.longitude)); 
-	HandG.setVisible(true);
-	
-	map.panTo(path[0]); 
+	map.setCenter(path[0]); 
+	hat.setPosition(path[path.length - 1]);
+//	hat.setVisible(true);
+	HandG.setPosition(path[0]);
+//	HandG.setVisible(true);
 	google.maps.event.trigger(map, 'resize');
-	
-	if (document.querySelectorAll(MARKER_SELECTOR).length == 0){
-		observer.observe(mapDiv, {
-						childList     : true,
-					    subtree       : true ,
-					    attributes    : true ,
-					    characterData : false
-						})
-	} else {
-		setTimeout(plotTrip,0);
+
+	if (markerImgs.length == 0) {
+		markerImgs = document.querySelectorAll(MARKER_SELECTOR);
+		if (markerImgs.length == 0) {
+			observer.observe(mapDiv, {
+				childList: true,
+				subtree: true,
+				attributes: true,
+				characterData: false
+			})
+		}
+	}
+	if (markerImgs.length != 0) {
+		setTimeout(plotTrip, 0);
 	}
 }
 function plotTrip(){
-	nextFunc = plotStep;
+	nextFunc = makeDestCenter;
 	hat.setAnimation(bounce);
-	HandG.setPosition(path[0]);
 	dirPoly.setVisible(true);		
 	progressPath = [];
 	progressPath.push(path[0]);
@@ -266,24 +259,51 @@ function plotTrip(){
 	stepPoly.setPath(progressPath);
 	stepPoly.setVisible(true);
 	currStep = 1;
-	var markerImgs = document.querySelectorAll(MARKER_SELECTOR);
-	if (markerImgs.length != 1)
+
+	if (markerImgs.length != 1) {
 		reportError({
 			header: "Error processing Google Maps marker.",
 			message: "Expecting one and only one Hansel and Gretal. Found: " + markerImgs.length
 		});
+		return;
+	}
+
 	markerDiv = markerImgs[0].parentNode;
-	markerDiv.style.transitionDuration = "0s";
-	markerDiv.style.transitionProperty = "left, top";
 	markerDiv.style.transitionTimingFunction = "linear";
+	markerDiv.addEventListener('transitionstart', startLeg);
+	markerDiv.style.visibility = "visible";
 	
-	setTimeout(plotStep,0);
 	abort = false;
 	btn.value = "Cancel";
 	btn.disabled = false;
+
+	travelListener = google.maps.event.addListener(map, 'center_changed', centerChanged);
+
+	setTimeout(makeDestCenter, 0);
+
+}
+function makeDestCenter() {
+	console.log("Panning to new Center");
+	map.panTo(path[currStep]);
+}
+function centerChanged() {
+	console.log("Center changed msv = " + markerDiv.style.visibility);
+	markerDiv.style.visibility = "hidden";
+	markerDiv.style.transitionDuration = "1ms";
+	markerDiv.style.transitionTimingFunction = "linear";
+	markerDiv.style.transitionProperty = "left, top";
+	markerDiv.addEventListener('transitionend', quiesced, { 'once': true });
+	markerDiv.addEventListener('transitioncancel', quiesced, { 'once': true });
+}
+function quiesced(e) {
+	markerDiv.style.visibility = "visible";
+	console.log("Quiesced " + e.type);
+	setTimeout(plotStep, 0);
 }
 function plotStep(){
 	if (abort) return;
+
+	markerDiv.style.transitionDuration = "0s";
 	
 	if (legs[currStep].didLoiter){
 		countDown = legs[currStep].restTime;
@@ -293,7 +313,7 @@ function plotStep(){
 		showInterval();
 	} else {
 		console.log("1");
-		plotIt();
+		setTimeout(plotIt, 0);
 	}
 }
 function showInterval(){
@@ -305,37 +325,68 @@ function showInterval(){
 	if (countDown < 1){
 		infoWindow.close();	
 		console.log("2");
-		plotIt();
+		setTimeout(plotIt,0);
 	} else {
 		setTimeout(showInterval, ONE_SEC);
 	}
 }
-function plotIt(){
+function plotIt() {
 	if (abort) return;
-	console.log("in plot");
+	console.log(new Date().getMilliseconds() + " in plot");
 
 	progressPath.push(path[currStep]);
 	stepPoly.setPath(progressPath);
-//	map.panTo(path[currStep]);
-	var transitionMS = legs[currStep].duration / multiSpeed;
+
+	google.maps.event.trigger(map, 'resize');
+	console.log("After pan");
+	setTimeout(undLauf, 0);
+}
+//  achtung fertig los
+function undLauf() {
+	console.log("In pan event");
+	if (abort) return;
+
+	var currStyle = getStyle(markerDiv);
+	transitionMS = legs[currStep].duration / multiSpeed;
 	markerDiv.style.transitionDuration = transitionMS + "ms";
-	HandG.setPosition(path[currStep]);
+	console.log(new Date().getMilliseconds() + " Total Duration " + transitionMS + " left " + currStyle.left + " top " + currStyle.top);
+	markerDiv.style.transitionProperty = "left, top";
+
+	markerDiv.addEventListener('transitionend', incrSteps, { 'once': true });
+
+	HandG.setPosition(path[currStep]);	
+	console.log("setPos " + markerDiv.style.left + " top " + markerDiv.style.top)
+}
+function startLeg(e) {
+	var currStyle = getStyle(markerDiv);
+	console.log(new Date().getMilliseconds() + " In start Leg " + e.propertyName + " left " + currStyle.left + " top " + currStyle.top);
+}
+function incrSteps(e) {
+	var currStyle = getStyle(markerDiv);
+	console.log(new Date().getMilliseconds() + " transition " + e.type + " prop " + e.propertyName + " left " + currStyle.left + " top " + currStyle.top);
+	if (abort) return;
+
+	console.log("End " + e.elapsedTime);
 
 	if (++currStep >= path.length) {
-		markerDiv.removeEventListener('transitionend', nextFunc);
+		console.log("Journey's end");
+		markerDiv.style.transitionDuration = "0s";
 		nextFunc = cleanUp;
 	}
-	markerDiv.addEventListener('transitionend', nextFunc);
+
+	setTimeout(nextFunc, 0);
 }
 function cleanUp() {
 	console.log("in cleanUp");
-	markerDiv.removeEventListener('transitionend', cleanUp);
+	markerDiv.style.visibility = "hidden";
+	travelListener.remove();
 	infoWindow.close();
-	hat.setAnimation(); 
+	hat.setAnimation(null); 
 	btn.value = "Replay";
 	btn.disabled = false;
 	markerDiv.style.transitionDuration = "0s";
-	HandG.setVisible(false);
+	markerDiv.style.transitionProperty = "none";
+//	HandG.setVisible(false);
 	map.setOptions({gestureHandling: "cooperative"});
 	zoomIn.style.display  = "";
 	zoomOut.style.display = "";
@@ -347,10 +398,8 @@ function waitForMarker(mutations, myInstance) {
 	for (var i=0; i<mutations.length; i++){
         if (mutations[i].type           == "attributes" && 
 			mutations[i].target.tagName == "IMG"        &&
-			mutations[i].target.src.toLowerCase().indexOf(MARKER_SRC) != -1){
-			console.log("result")
-			myInstance.disconnect();
-			setTimeout(plotTrip,0)
+			mutations[i].target.src.toLowerCase().indexOf(MARKER_SRC) != -1) {
+			touchDown = true;
 			break outer;
 		}
 		if (mutations[i].type != "childList" ||
@@ -360,12 +409,16 @@ function waitForMarker(mutations, myInstance) {
 			var node = mutations[i].addedNodes[j];
 			if (node.tagName == "DIV" && node.firstChild && node.firstChild.tagName == "IMG" &&
 				node.firstChild.src.toLowerCase().indexOf(MARKER_SRC) != -1){
-				console.log(node.firstChild.src);
-				myInstance.disconnect();
-				setTimeout(plotTrip,0)
+				touchDown = true;;
 				break outer;
 			}
 		}
+	}
+	if (touchDown) {
+		console.log("Got Marker");
+		myInstance.disconnect();
+		markerImgs = document.querySelectorAll(MARKER_SELECTOR);
+		setTimeout(plotTrip, 0)
 	}
 }		
 function handleZoom(e){

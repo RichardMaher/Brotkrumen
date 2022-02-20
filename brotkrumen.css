@@ -29,12 +29,15 @@
 	    -ms-overflow-style: none;
         -ms-content-zooming: none;
 		touch-action: manipulation;
+		overflow: hidden;
 	}
 	html {
+		min-height: -moz-available;          
 		min-height: -webkit-fill-available;
+		max-width: -moz-available;          
 		max-height: -webkit-fill-available;
-		height: 100vh;
-		height: -moz-available;          
+		width: 100%;
+		height: 100%;          
 		height: -webkit-fill-available;  
 		height: fill-available;
 	}
@@ -48,14 +51,15 @@
         display: flex;
         flex-direction: column;
         min-height: 100vh;
+		min-height: -moz-available;          
 		min-height: -webkit-fill-available;
         min-width: 100vw;
+		min-width: -moz-available;          
 		min-width: -webkit-fill-available;
-		height: 100vh;
-		height: -moz-available;          
+		height: 100%;          
 		height: -webkit-fill-available;  
 		height: fill-available;
-		width: 100vw;
+		width: 100%;
 		width: -moz-available;          
 		width: -webkit-fill-available;  
 		width: fill-available;
