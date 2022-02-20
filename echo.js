@@ -15,7 +15,7 @@ self.addEventListener('install',
             caches.open(CACHE_NAME).then(function (cache) {
 				return cache.addAll([
 					'/Brotkrumen/',
-					'Brotkrumen/travelmanager.html',
+					'/Brotkrumen/travelmanager.html',
                     '/Brotkrumen/hg.png',
                     '/Brotkrumen/gingerbreadhouse.png',
 					'/Brotkrumen/striped-witch-hat.png',
