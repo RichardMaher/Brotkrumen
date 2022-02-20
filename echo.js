@@ -15,19 +15,8 @@ self.addEventListener('install',
             caches.open(CACHE_NAME).then(function (cache) {
 				return cache.addAll([
 					'/Brotkrumen/',
-					'/Brotkrumen/travelmanager.html',
-                    '/Brotkrumen/hg.png',
-                    '/Brotkrumen/gingerbreadhouse.png',
-					'/Brotkrumen/striped-witch-hat.png',
-					'/Brotkrumen/googlemaps.png',
-					'/Brotkrumen/edna.jpg',
-                    '/Brotkrumen/brotkrumen.css',
-                    '/Brotkrumen/echo.js',
-					'/Brotkrumen/RegisterServiceWorker.js',
-                    '/Brotkrumen/brotkrumen.json',
-                    '/Brotkrumen/TravelManagerPolyfill.js',
-                    '/Brotkrumen/HandleMap.js'
-                ]).then(() => self.skipWaiting());
+                    '/Brotkrumen/hg.png'
+              ]).then(() => self.skipWaiting());
             })
         );
 	});
