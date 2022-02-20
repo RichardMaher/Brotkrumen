@@ -8,7 +8,7 @@
 function registerServiceWorker()
 {	
 // Make sure SW is there
-	navigator.serviceWorker.register('/echo.js')
+	navigator.serviceWorker.register('Brotkrumen/echo.js')
 		.then(reg => {
 				window.addEventListener("unload",unsubscribeTravelManager);
 				console.log('SW Registered');
