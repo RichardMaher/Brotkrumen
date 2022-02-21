@@ -16,7 +16,11 @@ self.addEventListener('install',
 				return cache.addAll([
 					'/Brotkrumen/',
 					'/Brotkrumen/TravelManager.html',
-					'/Brotkrumen/hg.png'
+					'/Brotkrumen/hg.png',
+                    '/Brotkrumen/gingerbreadhouse.png',
+					'/Brotkrumen/striped-witch-hat.png',
+					'/Brotkrumen/googlemaps.png',
+					'/Brotkrumen/edna.jpg'
               ]).then(() => self.skipWaiting());
             })
         );
