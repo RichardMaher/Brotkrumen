@@ -20,7 +20,13 @@ self.addEventListener('install',
                     '/Brotkrumen/gingerbreadhouse.png',
 					'/Brotkrumen/striped-witch-hat.png',
 					'/Brotkrumen/googlemaps.png',
-					'/Brotkrumen/edna.jpg'
+					'/Brotkrumen/edna.jpg',
+                    '/Brotkrumen/brotkrumen.css',
+					'/Brotkrumen/echo.js',
+					'/Brotkrumen/RegisterServiceWorker.js',
+					'/Brotkrumen/brotkrumen.json',
+					'/Brotkrumen/TravelManagerPolyfill.js',
+					'/Brotkrumen/HandleMap.js'
               ]).then(() => self.skipWaiting());
             })
         );
