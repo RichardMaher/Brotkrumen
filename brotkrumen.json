@@ -16,7 +16,7 @@
       "purpose": "maskable"
     }
   ],
-  "start_url": "/travelmanager.html",
+  "start_url": "/Brotkrumen/TravelManager.html",
   "background_color": "#00ccdd",
   "theme_color": "#00ccdd",
   "display": "fullscreen"
