@@ -1,24 +1,174 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>Simple Markers</title>
+    <title>Smooth Runnings</title>
+
 	<script type="application/javascript">
 		'use strict';
+		
+/* identification division.
+ * program-id.    GotTheMovesLikeJagger.
+ * author.        Richard Maher.
+ * version.       1.0
+ */
+ 		
+		document.addEventListener("DOMContentLoaded", isDOMIsGood);	
+		
+		const MARKER_SELECTOR       = "img[src*='hg.png'";
+		const MARKER_SRC            = "https://richardmaher.github.io/Brotkrumen/hg.png";					
+		const myLatLng 				= { lat: -25.363, lng: 131.044 };
+		
+		var mapDiv, protagonists, HandG, map, observer, markerDiv,
+			markerStyle, travelListener;
+		
+		var dest =	[
+					{ lat: -31.9523, lng: 115.8613 }, 
+					{ lat: -33.8688, lng: 151.2093 }, 
+					{ lat: -27.4705, lng: 153.0260 },
+					{ lat: -34.9285, lng: 138.6007 }
+					];
+					
+		var destIndex	= 0;
+		var touchDown	= false;
+		
+		function isDOMIsGood(e) {
+			console.log("DOM");
+			mapDiv = document.getElementById("map");
+		}
+		
 		function initMap() {
-		  const myLatLng = { lat: -25.363, lng: 131.044 };
-		  const map = new google.maps.Map(document.getElementById("map"), {
-			zoom: 4,
-			center: myLatLng,
-		  });
+			console.log("Init");
+			
+			map = new google.maps.Map(mapDiv, {
+				zoom: 4,
+				center: myLatLng,
+			});
+			
+			observer = new MutationObserver(waitForMarker);
+			
+			protagonists = {size: new google.maps.Size(45, 40),
+							scaledSize: new google.maps.Size(45, 40),
+							url: MARKER_SRC};
+							
+		    google.maps.event.addListenerOnce(map,'tilesloaded', tilesUp);
+		}
+		
+		function tilesUp() {
+			console.log("Map Tiles Here");
 
-		  new google.maps.Marker({
-			position: myLatLng,
-			map,
-			title: "Hello World!",
-		  });
+			travelListener = google.maps.event.addListener(map, 'center_changed', centerChanged);
+			
+			observer.observe(mapDiv, {
+							childList     : true,
+							subtree       : true ,
+							attributes    : true ,
+							characterData : false
+							});
+ 					
+			HandG = new google.maps.Marker(
+				{
+				position: myLatLng, 
+				map: map, 
+				draggable: false,
+				title: "HandG", 
+				zIndex: 12, 
+				visible: true, 
+				icon: protagonists, 
+				optimized: false
+				});						
+		}
+		
+		function makeDestCenter(){
+			console.log("Panning to new Center");			
+			map.panTo(dest[destIndex]);
+		}
+		
+		function centerChanged() {
+			console.log("Center changed Left = " + markerStyle.left + " Top = " + markerStyle.top);
+			markerDiv.style.visibility = "hidden";
+			markerDiv.style.transitionDuration = "1ms";
+			markerDiv.style.transitionTimingFunction = "linear";
+			markerDiv.style.transitionProperty = "left, top";
+			markerDiv.addEventListener('transitionend', quiesced, { 'once': true });
+			markerDiv.addEventListener('transitioncancel', quiesced, { 'once': true });
+		}
+				
+		function quiesced(e) {
+			markerDiv.style.visibility = "visible";
+			console.log("Quiesced " + e.type + " left " + markerStyle.left + " top " + markerStyle.top);
+			setTimeout(handover, 0);
+		}
+		
+		function handover(e) {
+			console.log("in handover left " + markerStyle.left + " top " + markerStyle.top);
+			markerDiv.style.transitionDuration = 2000 + "ms";
+			markerDiv.style.transitionTimingFunction = "linear";
+			markerDiv.addEventListener('transitionend', incrSteps, { 'once': true });
+			markerDiv.style.transitionProperty = "left, top";
+			HandG.setPosition(dest[destIndex]);
+		}
+		
+		function startLeg(e) {
+			console.log("start leg " + e.propertyName + " left " + e.target.style.left + " top " + e.target.style.top);
+		}
+		
+		function cancelLeg(e) {
+			console.log("Cancel leg " + e.propertyName + " left " + e.target.style.left + " top " + e.target.style.top);
+			markerDiv.style.transitionDuration = "0s";
+		}
+		function incrSteps(e) {
+			console.log("Incr Steps " + e.propertyName + " left " + e.target.style.left + " top " + e.target.style.top);
+			if (++destIndex >= dest.length) {
+				console.log("Journey's end");
+				markerDiv.style.transitionDuration = "0s";
+				travelListener.remove();
+				return;
+			}
+
+			setTimeout(makeDestCenter,0);
+		}
+		
+		function waitForMarker(mutations, myInstance) {
+			outer:
+			for (var i=0; i<mutations.length; i++){
+				if (mutations[i].type           == "attributes" && 
+					mutations[i].target.tagName == "IMG"        &&
+					mutations[i].target.src.toLowerCase().indexOf(MARKER_SRC.toLowerCase()) != -1){
+					touchDown = true;
+					break outer;
+				}
+				if (mutations[i].type != "childList" ||
+					mutations[i].addedNodes.length   == 0) 
+					continue;
+				for (var j=0; j<mutations[i].addedNodes.length; j++) {
+					var node = mutations[i].addedNodes[j];
+					if (node.tagName == "DIV" && node.firstChild && node.firstChild.tagName == "IMG" &&
+						node.firstChild.src.toLowerCase().indexOf(MARKER_SRC.toLowerCase()) != -1){
+						touchDown = true;
+						break outer;
+					}
+				}
+			}
+
+			if (touchDown) {
+				console.log("Got Marker");
+				myInstance.disconnect();
+				var markerImgs = document.querySelectorAll(MARKER_SELECTOR);
+				if (markerImgs.length != 1) {
+					throw new Error("Expecting one and only one Hansel and Gretal. Found: " + markerImgs.length);
+				};
+				markerDiv = markerImgs[0].parentNode;
+				markerStyle = getComputedStyle(markerDiv);
+				markerDiv.addEventListener('transitionstart', startLeg);
+				markerDiv.addEventListener('transitioncancel', cancelLeg);
+				console.log("Left = " + markerStyle.left + " Top = " + markerStyle.top);
+				setTimeout(makeDestCenter,0);
+			}
 		}
 	</script>
-    <script src="https://polyfill.io/v3/polyfill.min.js?features=default"></script>
+    <script
+      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&callback=initMap&v=weekly&channel=2" async
+    ></script>
 	<style type="text/css">
 		#map {
 		  height: 100%;
@@ -36,10 +186,6 @@
   <body>
     <div id="map"></div>
 
-    <!-- Async script executes immediately and must be after any DOM elements used in callback. -->
-    <script
-      src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&callback=initMap&v=weekly&channel=2"
-      async
-    ></script>
+
   </body>
 </html>
