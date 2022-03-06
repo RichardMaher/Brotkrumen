@@ -209,10 +209,6 @@
         if (navigator.wakeLock && document.visibilityState == "visible")
             navigator.wakeLock.request("screen").then(lock => {fudgeLock = lock});
 
-        try {
-            localStorage.removeItem(MAPS_API_KEY);
-        } catch (err) {};
-
         var mapsKey = localStorage.getItem(MAPS_API_KEY);
         if (!mapsKey){
             userKey.style.display = "block";

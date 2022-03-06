@@ -14,7 +14,7 @@ var touchDown		= false;
 
 var protagonists, endMarker, mapDiv, HandG, currStep,
 	canTalk, bounce, drop, dirPoly, stepPoly, mudMap,
-	mapTypeArray, hat, HGDiv, HGImg, infoWindow,
+	mapTypeArray, hat, infoWindow,
 	countDown, markerDiv, observer, nextFunc, foot,
 	zoomIn, zoomOut, finish, ouch, transitionMS,
 	travelListener
@@ -386,7 +386,6 @@ function cleanUp() {
 	btn.disabled = false;
 	markerDiv.style.transitionDuration = "0s";
 	markerDiv.style.transitionProperty = "none";
-//	HandG.setVisible(false);
 	map.setOptions({gestureHandling: "cooperative"});
 	zoomIn.style.display  = "";
 	zoomOut.style.display = "";

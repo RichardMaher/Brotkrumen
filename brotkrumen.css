@@ -253,6 +253,11 @@
 		background-position: center;
 		border: 1px solid #00ccdd
 	}
+	#installIcon {
+		background-image:url('hg.jpg');
+		background-size: cover;
+		background-position: center;
+	}
 	#loadMaps {
 		background-size: cover;
 		background-image: url('googlemaps.png');
