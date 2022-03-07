@@ -215,7 +215,7 @@
             return;
         }
 
-        openUp();
+        enableMaps();
     }
     function openUp() {
         modalWait.style.display = "none";
@@ -305,7 +305,7 @@
         modalWait.style.display = "flex";
         loadError.style.display = "inline-block";
     }
-    function enableMaps(e) {
+    function enableMaps() {
         if (!mapEnabled) {
             keyPaste.style.backgroundColor = "red";
             keyPaste.classList.add('warnUser');
