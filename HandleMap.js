@@ -229,9 +229,7 @@ function showJourney(){
 	
 	map.setCenter(path[0]); 
 	hat.setPosition(path[path.length - 1]);
-//	hat.setVisible(true);
 	HandG.setPosition(path[0]);
-//	HandG.setVisible(true);
 	google.maps.event.trigger(map, 'resize');
 
 	if (markerImgs.length == 0) {
