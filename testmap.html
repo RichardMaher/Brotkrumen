@@ -24,9 +24,9 @@
 			markerStyle, travelListener;
 		
 		var dest =	[
-//					{ lat: -31.9523, lng: 115.8613 }, 
-//					{ lat: -33.9525, lng: 150.1932 }, 
-					{ lat:  0.5821, lng: 150.1932 }, 
+					{ lat: -31.9523, lng: 115.8613 }, 
+					{ lat: -33.9525, lng: 150.1932 }, 
+//					{ lat:   0.5821, lng: 150.1932 }, // z12 failure. 5820 works
 //					{ lat: -33.8688, lng: 150.2093 }, 
 					{ lat: -27.4705, lng: 153.0260 },
 					{ lat: -34.9285, lng: 138.6007 }
@@ -34,8 +34,8 @@
 					
 		var destIndex	= 0;
 		var touchDown	= false;
-//		var myLatLng 	= { lat: -25.363, lng: 131.044 };
-		var myLatLng 	= {lat: -31.9523, lng: 115.86096 }; // 99999 pixels from 150.1932 at zoom 12
+		var myLatLng 	= { lat: -25.363, lng: 131.044 };
+//		var myLatLng 	= {lat: -31.9523, lng: 115.86096 }; // 99999 pixels from 150.1932 at zoom 12
 
 		function isDOMIsGood(e) {
 			console.log("DOM");
@@ -46,8 +46,8 @@
 			console.log("Init");
 			
 			map = new google.maps.Map(mapDiv, {
-//				zoom: 4,
-				zoom: 13,
+				zoom: 4,
+//				zoom: 13,
 				center: myLatLng
 			});
 			
