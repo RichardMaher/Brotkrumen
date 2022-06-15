@@ -7,7 +7,7 @@
 		'use strict';
 		
 /* identification division.
- * program-id.    GotTheMovesLikeJagger.
+ * program-id.    YouCantTouchThis-BreakItDown.
  * author.        Richard Maher.
  * version.       1.0
  */
@@ -16,22 +16,27 @@
 		
 		const MARKER_SELECTOR       = "img[src*='hg.png']";
 		const MARKER_SRC            = "https://richardmaher.github.io/Brotkrumen/hg.png";					
-		const myLatLng 				= { lat: -25.363, lng: 131.044 };
 		const TILE_SIZE				= 256;
+		const MAX_TRIP				= 99999;
+		const TOO_SMALL				= 0;
 		
 		var mapDiv, protagonists, HandG, map, observer, markerDiv,
 			markerStyle, travelListener;
 		
 		var dest =	[
-					{ lat: -31.9523, lng: 115.8613 }, 
-					{ lat: -33.8688, lng: 151.2093 }, 
+//					{ lat: -31.9523, lng: 115.8613 }, 
+//					{ lat: -33.9525, lng: 150.1932 }, 
+					{ lat:  0.5821, lng: 150.1932 }, 
+//					{ lat: -33.8688, lng: 150.2093 }, 
 					{ lat: -27.4705, lng: 153.0260 },
 					{ lat: -34.9285, lng: 138.6007 }
 					];
 					
 		var destIndex	= 0;
 		var touchDown	= false;
-		
+//		var myLatLng 	= { lat: -25.363, lng: 131.044 };
+		var myLatLng 	= {lat: -31.9523, lng: 115.86096 }; // 99999 pixels from 150.1932 at zoom 12
+
 		function isDOMIsGood(e) {
 			console.log("DOM");
 			mapDiv = document.getElementById("map");
@@ -42,7 +47,7 @@
 			
 			map = new google.maps.Map(mapDiv, {
 //				zoom: 4,
-				zoom: 6,
+				zoom: 13,
 				center: myLatLng
 			});
 			
@@ -64,36 +69,7 @@
 		}
 		
 		function tilesUp() {
-			console.log("Map Tiles Here");
-			const scale = 1 << map.getZoom();
-			const proj = map.getProjection();
-			for (var i=0; i<dest.length; i++){
-				var j = proj.fromLatLngToPoint(new google.maps.LatLng(
-							dest[i].lat, 
-							dest[i].lng));
-				var p = project(new google.maps.LatLng(
-							dest[i].lat, 
-							dest[i].lng));
-				  const pixel = new google.maps.Point(
-					Math.floor(p.x * scale),
-					Math.floor(p.y * scale)
-				  );
-				let tile = new google.maps.Point(
-				  Math.floor((p.x * scale) / TILE_SIZE),
-				  Math.floor((p.y * scale) / TILE_SIZE)
-			    );
-				console.log("tile.x " + tile.x + " tile.y " + tile.y + " pixel.x " + pixel.x + " pixel.y " + pixel.y +
-							" j.x " + Math.floor(j.x * scale) + " j.y " + Math.floor(j.y * scale))
-			}
-
-			travelListener = google.maps.event.addListener(map, 'idle', centerChanged);
-			google.maps.event.addListener(map, 'idle', function(e) 
-				{ 
-					console.log("IDLE"); 
-					console.log("Idle Left = " + markerStyle.left + " Top = " + markerStyle.top +  " Dis = " + markerStyle.display);
-					var markerImgs = document.querySelectorAll(MARKER_SELECTOR);
-					console.log(markerImgs.length);
-				});
+			travelListener = google.maps.event.addListener(map, 'center_changed', centerChanged);
 					
 			HandG = new google.maps.Marker(
 				{
@@ -101,7 +77,7 @@
 				map: map, 
 				draggable: false,
 				title: "HandG", 
-				zIndex: 12, 
+				zIndex: 13, 
 				visible: true, 
 				icon: protagonists, 
 				optimized: false
@@ -109,65 +85,66 @@
 		}
 		
 		function makeDestCenter(){
-			const observer = new MutationObserver((mutations_list) => {
-				var markerImgs = document.querySelectorAll(MARKER_SELECTOR);
-				if (markerImgs.length == 0) {
-					console.log("!!!!!!!!!!");
-				};
-				mutations_list.find((mutation, idx) => {
-					console.log("XXXXXX type " + mutation.type + " removed " + mutation.removedNodes.length + " XXXXXXX");
-					var removed = false;
-					for (var j=0; j<mutation.removedNodes.length; j++) {
-						var node = mutation.removedNodes[j];
-						if (node.tagName == "IMG" && node.src.toLowerCase().indexOf(MARKER_SRC.toLowerCase()) != -1) console.log("############");
-						if (node.tagName == "DIV" && node.firstChild && node.firstChild.tagName == "IMG" &&
-							node.firstChild.src.toLowerCase().indexOf(MARKER_SRC.toLowerCase()) != -1){
-							console.log("$$$$$$$$$$$$$$$");
-							return true;
-						}
-					};
-				});
-			});
+			console.log("Panning to new Center " + map.getZoom());
+			var home = map.getCenter();
+			var zoom = map.getZoom();
+			var scale = 1 << zoom;	
+			var proj = map.getProjection();
+			
+			var homePoint =  proj.fromLatLngToPoint(home);	
+			var startPixelX = Math.round(homePoint.x * scale);
+			var startPixelY = Math.round(homePoint.y * scale);
 
-//			observer.observe(mapDiv, { subtree: true, childList: true });
+			var destPoint =  proj.fromLatLngToPoint(dest[destIndex]);
+			var destPixelX = Math.round(destPoint.x * scale);
+			var destPixelY = Math.round(destPoint.y * scale);
+			var xTrip = Math.abs(destPixelX - startPixelX);
+			var yTrip = Math.abs(destPixelY - startPixelY);
 
-			console.log("Panning to new Center");	
-		
-			map.panTo(dest[destIndex]);
+			console.log("sX " + startPixelX + " dX " + destPixelX + " sY " + startPixelY + " dY " + destPixelY);
+
+			if ((xTrip > MAX_TRIP) || (yTrip > MAX_TRIP)) {
+				google.maps.event.addListenerOnce(map, 'idle', makeDestCenter);
+				map.setZoom(--zoom);
+			} else {
+				if (xTrip == TOO_SMALL && yTrip == TOO_SMALL) {
+					google.maps.event.addListenerOnce(map, 'idle', makeDestCenter);
+					map.setZoom(++zoom);
+				} else {
+					map.panTo(dest[destIndex]);
+				}
+			}
 		}
 		
 		function centerChanged() {
-			console.log("Center changed Left = " + markerStyle.left + " Top = " + markerStyle.top + " Dis = " + markerStyle.display);
-			console.log("X = " + map.getProjection().fromLatLngToPoint(dest[destIndex]).x + " y = " + map.getProjection().fromLatLngToPoint(dest[destIndex]).y);
-			var p = fromLatLngToPoint(dest[destIndex], map);
-			console.log(p.x + " " + p.y);
+			console.log("Center Changed " + HandG.getPosition());
 			markerDiv.style.visibility = "hidden";
 			markerDiv.style.transitionDuration = "1ms";
 			markerDiv.style.transitionTimingFunction = "linear";
 			markerDiv.style.transitionProperty = "left, top";
-//		if (destIndex == 0) setTimeout(quiesced, 0);
 			markerDiv.addEventListener('transitionend', quiesced, { 'once': true });
 			markerDiv.addEventListener('transitioncancel', quiesced, { 'once': true });
 		}
 				
 		function quiesced(e) {
+			markerStyle = getComputedStyle(markerDiv);
+
 			markerDiv.style.visibility = "visible";
-			console.log("Quiesced " + e.type + " left " + markerStyle.left + " top " + markerStyle.top);
-//			console.log("Quiesced  left " + markerStyle.left + " top " + markerStyle.top);
+			console.log("Quiesced left " + markerStyle.left + " top " + markerStyle.top);
 			setTimeout(handover, 0);
 		}
 		
 		function handover(e) {
+			markerStyle = getComputedStyle(markerDiv);
 			console.log("in handover left " + markerStyle.left + " top " + markerStyle.top);
 			markerDiv.style.transitionDuration = 2000 + "ms";
 			markerDiv.style.transitionTimingFunction = "linear";
 			markerDiv.addEventListener('transitionend', incrSteps, { 'once': true });
 			markerDiv.style.transitionProperty = "left, top";
-			HandG.setPosition(dest[destIndex]);
-			console.log("leaving handover left " + markerStyle.left + " top " + markerStyle.top);
-			console.log("X = " + map.getProjection().fromLatLngToPoint(dest[destIndex]).x + " y = " + map.getProjection().fromLatLngToPoint(dest[destIndex]).y);
-			console.log("X = " + map.getProjection().fromLatLngToPoint(dest[destIndex - 1]).x + " y = " + map.getProjection().fromLatLngToPoint(dest[destIndex - 1]).y);
 
+			markerDiv.style.visibility = "visible";
+			HandG.setPosition(dest[destIndex]);
+			myLatLng = dest[destIndex];
 		}
 		
 		function startLeg(e) {
@@ -220,42 +197,16 @@
 					throw new Error("Expecting one and only one Hansel and Gretal. Found: " + markerImgs.length);
 				};
 				markerDiv = markerImgs[0].parentNode;
-				markerStyle = getComputedStyle(markerDiv);
 				markerDiv.addEventListener('transitionstart', startLeg);
 				markerDiv.addEventListener('transitioncancel', cancelLeg);
-				console.log("Left = " + markerStyle.left + " Top = " + markerStyle.top);
 				setTimeout(makeDestCenter,0);
 			}
-		}
-
-		// Courtesy: https://developers.google.com/maps/documentation/javascript/examples/map-coordinates#maps_map_coordinates-javascript
-		//	The mapping between latitude, longitude and pixels is defined by the web
-		//	mercator projection.
-
-		function project(latLng) {
-		  let siny = Math.sin((latLng.lat() * Math.PI) / 180);
-
-		  // Truncating to 0.9999 effectively limits latitude to 89.189. This is
-		  // about a third of a tile past the edge of the world tile.
-
-		  siny = Math.min(Math.max(siny, -0.9999), 0.9999);
-		  return new google.maps.Point(
-			TILE_SIZE * (0.5 + latLng.lng() / 360),
-			TILE_SIZE * (0.5 - Math.log((1 + siny) / (1 - siny)) / (4 * Math.PI))
-		  );
-		}
-
-		function fromLatLngToPoint(latLng, map) {
-			  var topRight = map.getProjection().fromLatLngToPoint(map.getBounds().getNorthEast());
-			  var bottomLeft = map.getProjection().fromLatLngToPoint(map.getBounds().getSouthWest());
-			  var scale = Math.pow(2, map.getZoom());
-			  var worldPoint = map.getProjection().fromLatLngToPoint(latLng);
-			  return new google.maps.Point((worldPoint.x - bottomLeft.x) * scale, (worldPoint.y - topRight.y) * scale);
 		}
 	</script>
 	<script
 	  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyB41DRUbKWJHPxaFjMAwdrzWzbVKartNGg&callback=initMap&v=weekly&channel=2" async
 	></script>
+
 	<style type="text/css">
 		#map {
 		  height: 100%;
