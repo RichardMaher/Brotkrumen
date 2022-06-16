@@ -7,6 +7,9 @@
  
 const MARKER_SELECTOR       = "img[src*='hg.png'";
 const MARKER_SRC            = "hg.png"
+const TILE_SIZE				= 256;
+const MAX_TRIP				= 99999;
+const TOO_SMALL				= 0;
 
 var progressPath	= [];
 var markerImgs		= [];
@@ -281,8 +284,35 @@ function plotTrip(){
 
 }
 function makeDestCenter() {
-	console.log("Panning to new Center");
-	map.panTo(path[currStep]);
+	console.log("Panning to new Center " + map.getZoom());
+	var home = map.getCenter();
+	var zoom = map.getZoom();
+	var scale = 1 << zoom;
+	var proj = map.getProjection();
+
+	var homePoint = proj.fromLatLngToPoint(home);
+	var startPixelX = Math.round(homePoint.x * scale);
+	var startPixelY = Math.round(homePoint.y * scale);
+
+	var destPoint = proj.fromLatLngToPoint(path[currStep]);
+	var destPixelX = Math.round(destPoint.x * scale);
+	var destPixelY = Math.round(destPoint.y * scale);
+	var xTrip = Math.abs(destPixelX - startPixelX);
+	var yTrip = Math.abs(destPixelY - startPixelY);
+
+	console.log("sX " + startPixelX + " dX " + destPixelX + " sY " + startPixelY + " dY " + destPixelY);
+
+	if ((xTrip > MAX_TRIP) || (yTrip > MAX_TRIP)) {
+		google.maps.event.addListenerOnce(map, 'idle', makeDestCenter);
+		map.setZoom(--zoom);
+	} else {
+		if (xTrip == TOO_SMALL && yTrip == TOO_SMALL) {
+			google.maps.event.addListenerOnce(map, 'idle', makeDestCenter);
+			map.setZoom(++zoom);
+		} else {
+			map.panTo(path[currStep]);
+		}
+	}
 }
 function centerChanged() {
 	console.log("Center changed msv = " + markerDiv.style.visibility);
@@ -353,7 +383,6 @@ function undLauf() {
 	markerDiv.addEventListener('transitionend', incrSteps, { 'once': true });
 
 	HandG.setPosition(path[currStep]);	
-	console.log("setPos " + markerDiv.style.left + " top " + markerDiv.style.top)
 }
 function startLeg(e) {
 	var currStyle = getStyle(markerDiv);
