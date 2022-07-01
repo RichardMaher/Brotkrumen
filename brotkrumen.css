@@ -437,10 +437,53 @@
 	table#header {
 		width: 100%;
 	}
-
 	.warnUser {
 		animation-name: clickShrink;
 		animation-duration: 0.3s;
+	}
+	.installContainer > div {
+		text-align: center;
+		margin: 0.25em;
+	}
+	#installPrompt {
+		font-weight: bold;
+		margin: 0px;
+	}
+	#installBtn {
+		height: 2em;
+	}
+	.installContainer {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		align-items: center;
+		justify-content: space-between;
+		min-width: 100vw;
+		min-width: -moz-available;
+		min-width: -webkit-fill-available;
+		width: 100%;
+		width: -moz-available;
+		width: -webkit-fill-available;
+		width: fill-available;
+		position: absolute;
+		bottom: -100%; 
+		right: 0px;
+		background-color: white;
+		color: #00ccdd;
+		width: 100%;
+		padding: 0px;
+		font-size: 1.5em;
+		transition-duration: 3s;
+		transition-timing-function: ease-out;
+		transition-property: bottom;
+	}
+	.installIcon {
+		background-image: url('hg.png');
+		background-size: 2.5em 2.5em;
+		background-repeat: no-repeat;
+		background-position: center;
+		height: 2.5em;
+		width: 2.5em;
 	}
 	@keyframes clickShrink {
 		50% {
