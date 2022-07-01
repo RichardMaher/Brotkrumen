@@ -249,7 +249,7 @@
 		document.getElementById("installBanner").style.bottom = "-100%";
 
 		installEvt.prompt();
-		const result = await promptEvent.userChoice;
+		const result = await installEvt.userChoice;
 		console.log("User install is " + result);
 	}
 	function lockApproved(e) {
