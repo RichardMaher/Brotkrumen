@@ -3,18 +3,18 @@
   "name": "Brotkrumen Web App",
   "description": "Native Background Geolocation POC",
   "icons": [
-    {
-      "src": "gingerbreadhouse.png",
-      "sizes": "48x48 128x128 144x144 192x192 512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "gingerbreadhouse.png",
-      "sizes": "48x48 128x128 144x144 192x192 512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
+	{
+	  "src": "/Brotkrumen/gingerbreadhouse.png",
+	  "sizes": "48x48 128x128 144x144 192x192 512x512",
+	  "type": "image/png",
+	  "purpose": "any"
+	},
+	{
+	  "src": "/Brotkrumen/gingerbreadhouse.png",
+	  "sizes": "48x48 128x128 144x144 192x192 512x512",
+	  "type": "image/png",
+	  "purpose": "maskable"
+	}
   ],
   "start_url": "/Brotkrumen/TravelManager.html",
   "background_color": "#00ccdd",
