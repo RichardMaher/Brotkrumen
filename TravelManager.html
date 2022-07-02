@@ -75,6 +75,8 @@
 	var path       = [];
 	var legs       = [];
 	var mapEnabled = false;
+	var beenAsked  = false;
+	var installEvt = null;
 
 	var logWindow, travelSubscription, kickOff, mainDiv,
 		contentDiv, headerDiv, btn, logScroll, logList,
@@ -84,7 +86,7 @@
 		zoomLevel, abort, fudgeLock, modalWait, noWorries,
 		keyPaste, loadMaps, noMaps, userKey, synchPoint2Fail,
 		replayRange, lockConsent, okay, getStyle, loadError,
-		installEvt, installBtn
+		installBtn
 		;
 
 	var	locReady = new Promise((resolve) => {synchPoint1 = resolve});
@@ -121,11 +123,15 @@
 			e.preventDefault();
 		  // Stash the event so it can be triggered later.
 			console.log("***Have install event");
-			askInstall(e);
+			if (!beenAsked) {
+				askInstall(e);
+			}
+			beenAsked = true;
 		});
 
 		window.addEventListener('appinstalled', function() {
 			console.log("***User has installed");
+			installEvt = null;
 		});
 
 		document.addEventListener("visibilitychange", visibilityChange);
@@ -222,6 +228,11 @@
 		}
 
 		await delay(2000);
+
+		if (!installEvt) {
+			return;
+		}
+
 		var installBanner = document.getElementById("installBanner");
 		installBanner.addEventListener('transitionend',
 										function (e) {
@@ -248,9 +259,14 @@
 		e.srcElement.disabled = true;
 		document.getElementById("installBanner").style.bottom = "-100%";
 
+		if (!installEvt) {
+			return;
+		}
+
 		installEvt.prompt();
 		const result = await installEvt.userChoice;
-		console.log("User install is " + result);
+		installEvt = null;
+		console.log("User install is " + result.outcome);
 	}
 	function lockApproved(e) {
 		lockConsent.style.display = "none";
