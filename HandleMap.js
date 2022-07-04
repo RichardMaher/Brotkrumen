@@ -276,15 +276,17 @@ function plotTrip(){
 	
 	abort = false;
 	btn.value = "Cancel";
-	btn.disabled = false;
 
 	travelListener = google.maps.event.addListener(map, 'center_changed', centerChanged);
 
 	setTimeout(makeDestCenter, 0);
 
+	btn.disabled = false;
 }
 function makeDestCenter() {
 	console.log("Panning to new Center " + map.getZoom());
+	if (abort) return;
+
 	var home = map.getCenter();
 	var zoom = map.getZoom();
 	var scale = 1 << zoom;
@@ -316,6 +318,8 @@ function makeDestCenter() {
 }
 function centerChanged() {
 	console.log("Center changed msv = " + markerDiv.style.visibility);
+	if (abort) return;
+
 	markerDiv.style.visibility = "hidden";
 	markerDiv.style.transitionDuration = "1ms";
 	markerDiv.style.transitionTimingFunction = "linear";
@@ -324,6 +328,8 @@ function centerChanged() {
 	markerDiv.addEventListener('transitioncancel', quiesced, { 'once': true });
 }
 function quiesced(e) {
+	if (abort) return;
+
 	markerDiv.style.visibility = "visible";
 	console.log("Quiesced " + e.type);
 	setTimeout(plotStep, 0);
