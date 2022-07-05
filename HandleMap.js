@@ -185,7 +185,7 @@ function makeMap(){
 			optimized: false
 		});
 		
-    infoWindow = new google.maps.InfoWindow();
+	infoWindow = new google.maps.InfoWindow({ disableAutoPan: true });
 
 	zoomIn = document.getElementById("zoomIn");
 	zoomIn.addEventListener('click', handleZoom);
