@@ -304,8 +304,6 @@ function makeDestCenter() {
 	var xTrip = Math.abs(destPixelX - startPixelX);
 	var yTrip = Math.abs(destPixelY - startPixelY);
 
-	console.log("sX " + startPixelX + " dX " + destPixelX + " sY " + startPixelY + " dY " + destPixelY);
-
 	if ((xTrip > MAX_TRIP) || (yTrip > MAX_TRIP)) {
 		google.maps.event.addListenerOnce(map, 'idle', makeDestCenter);
 		map.setZoom(--zoom);
@@ -357,7 +355,7 @@ function showInterval(){
 	if (abort) return;
 	
 	infoWindow.setContent(
-		"<div id='waitDiv'><p>Waiting "+deltaDate(countDown)+"</p></div>");
+		"<div id='waitDiv'><span>Waiting "+deltaDate(countDown)+"</span><br><br></div>");
 	if (countDown < 1){
 		infoWindow.close();	
 		console.log("2");
@@ -414,6 +412,7 @@ function cleanUp() {
 	markerDiv.style.visibility = "hidden";
 	travelListener.remove();
 	markerDiv.removeEventListener('transitionstart', startLeg);
+	markerDiv.removeEventListener('transitionend', incrSteps, { 'once': true });
 	infoWindow.close();
 	hat.setAnimation(null); 
 	btn.value = "Replay";

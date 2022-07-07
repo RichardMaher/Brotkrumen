@@ -412,7 +412,7 @@
 		height: 1.75em;
 		width: 1.75em;
 	}
-	div#waitDiv p {
+	div#waitDiv span {
 		color: #00ccdd;
 		font-weight: bold;
 	}
