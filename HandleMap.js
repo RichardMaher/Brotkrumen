@@ -274,6 +274,7 @@ function plotTrip(){
 	markerDiv = markerImgs[0].parentNode;
 	markerDiv.style.transitionTimingFunction = "linear";
 	markerDiv.addEventListener('transitionstart', startLeg);
+	markerDiv.addEventListener('transitioncancel', rainCheck);
 	markerDiv.style.visibility = "visible";
 	
 	abort = false;
@@ -284,6 +285,10 @@ function plotTrip(){
 	setTimeout(makeDestCenter, 0);
 
 	btn.disabled = false;
+}
+function rainCheck(e) {
+	markerDiv.removeEventListener('transitionend', incrSteps, { 'once': true });
+	markerDiv.removeEventListener('transitionend', quiesced, { 'once': true });
 }
 function makeDestCenter() {
 	console.log("Panning to new Center " + map.getZoom() + " " + abort);
@@ -325,7 +330,6 @@ function centerChanged() {
 	markerDiv.style.transitionTimingFunction = "linear";
 	markerDiv.style.transitionProperty = "left, top";
 	markerDiv.addEventListener('transitionend', quiesced, { 'once': true });
-	markerDiv.addEventListener('transitioncancel', quiesced, { 'once': true });
 }
 function quiesced(e) {
 	console.log("Quiesced " + e.type + " " + abort);
@@ -355,7 +359,7 @@ function showInterval(){
 	if (abort) return;
 	
 	infoWindow.setContent(
-		"<div id='waitDiv'><span>Waiting "+deltaDate(countDown)+"</span><br><br></div>");
+		"<div id='waitDiv'><span>Waiting "+deltaDate(countDown)+"&nbsp;</span><br><br></div>");
 	if (countDown < 1){
 		infoWindow.close();	
 		console.log("2");
@@ -412,7 +416,6 @@ function cleanUp() {
 	markerDiv.style.visibility = "hidden";
 	travelListener.remove();
 	markerDiv.removeEventListener('transitionstart', startLeg);
-	markerDiv.removeEventListener('transitionend', incrSteps, { 'once': true });
 	infoWindow.close();
 	hat.setAnimation(null); 
 	btn.value = "Replay";
