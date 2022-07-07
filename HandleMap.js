@@ -225,7 +225,8 @@ function gotTiles(){
 	mapDetails.style.position = "";
 	synchPoint2();
 }
-function showJourney(){
+function showJourney() {
+	console.log("In show journey");
 	map.setOptions({gestureHandling: "none"});
 	zoomOut.style.display = "none";
 	zoomIn.style.display  = "none";
@@ -251,6 +252,7 @@ function showJourney(){
 	}
 }
 function plotTrip(){
+	console.log("In plot trip ");
 	nextFunc = makeDestCenter;
 	hat.setAnimation(bounce);
 	dirPoly.setVisible(true);		
@@ -284,7 +286,7 @@ function plotTrip(){
 	btn.disabled = false;
 }
 function makeDestCenter() {
-	console.log("Panning to new Center " + map.getZoom());
+	console.log("Panning to new Center " + map.getZoom() + " " + abort);
 	if (abort) return;
 
 	var home = map.getCenter();
@@ -317,7 +319,7 @@ function makeDestCenter() {
 	}
 }
 function centerChanged() {
-	console.log("Center changed msv = " + markerDiv.style.visibility);
+	console.log("Center changed msv = " + markerDiv.style.visibility + " " + abort);
 	if (abort) return;
 
 	markerDiv.style.visibility = "hidden";
@@ -328,13 +330,14 @@ function centerChanged() {
 	markerDiv.addEventListener('transitioncancel', quiesced, { 'once': true });
 }
 function quiesced(e) {
+	console.log("Quiesced " + e.type + " " + abort);
 	if (abort) return;
 
 	markerDiv.style.visibility = "visible";
-	console.log("Quiesced " + e.type);
 	setTimeout(plotStep, 0);
 }
-function plotStep(){
+function plotStep() {
+	console.log("plot step " + abort)
 	if (abort) return;
 
 	markerDiv.style.transitionDuration = "0s";
@@ -354,8 +357,7 @@ function showInterval(){
 	if (abort) return;
 	
 	infoWindow.setContent(
-		"<div id='waitDiv'><span>Waiting "+deltaDate(countDown)+"</span></div>");
-	countDown -= (ONE_SEC * multiSpeed);
+		"<div id='waitDiv'><p>Waiting "+deltaDate(countDown)+"</p></div>");
 	if (countDown < 1){
 		infoWindow.close();	
 		console.log("2");
@@ -363,21 +365,21 @@ function showInterval(){
 	} else {
 		setTimeout(showInterval, ONE_SEC);
 	}
+	countDown -= (ONE_SEC * multiSpeed);
 }
 function plotIt() {
+	console.log(new Date().getMilliseconds() + " in plot it " + currStep + " " + abort);
 	if (abort) return;
-	console.log(new Date().getMilliseconds() + " in plot");
 
 	progressPath.push(path[currStep]);
 	stepPoly.setPath(progressPath);
 
 	google.maps.event.trigger(map, 'resize');
-	console.log("After pan");
 	setTimeout(undLauf, 0);
 }
 //  achtung fertig los
 function undLauf() {
-	console.log("In pan event");
+	console.log("In und laudf pan event " + abort);
 	if (abort) return;
 
 	var currStyle = getStyle(markerDiv);
@@ -391,12 +393,10 @@ function undLauf() {
 	HandG.setPosition(path[currStep]);	
 }
 function startLeg(e) {
-	var currStyle = getStyle(markerDiv);
-	console.log(new Date().getMilliseconds() + " In start Leg " + e.propertyName + " left " + currStyle.left + " top " + currStyle.top);
+	console.log(" In start Leg " + e.type + " " + abort);
 }
 function incrSteps(e) {
-	var currStyle = getStyle(markerDiv);
-	console.log(new Date().getMilliseconds() + " transition " + e.type + " prop " + e.propertyName + " left " + currStyle.left + " top " + currStyle.top);
+	console.log("in incr steps " + abort);
 	if (abort) return;
 
 	console.log("End " + e.elapsedTime);
@@ -410,9 +410,10 @@ function incrSteps(e) {
 	setTimeout(nextFunc, 0);
 }
 function cleanUp() {
-	console.log("in cleanUp");
+	console.log("in cleanUp " + abort);
 	markerDiv.style.visibility = "hidden";
 	travelListener.remove();
+	markerDiv.removeEventListener('transitionstart', startLeg);
 	infoWindow.close();
 	hat.setAnimation(null); 
 	btn.value = "Replay";
