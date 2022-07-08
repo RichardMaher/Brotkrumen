@@ -116,7 +116,8 @@ function BackgroundGeolocation()
 		{
 			navigator.geolocation.getCurrentPosition(currentSuccess, currentFailure ,{
 						maximumAge: Number.POSITIVE_INFINITY,
-						timeout: TIMEOUT_IS_USELESS
+						timeout: TIMEOUT_IS_USELESS,
+						enableHighAccuracy: true
 					});								
 		}
 		

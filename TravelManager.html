@@ -295,7 +295,7 @@
 	}
 	function rectitude(){
 	// Up front permission dialogue, if necessary.
-		navigator.geolocation.getCurrentPosition(startPosition,locFail);
+		navigator.geolocation.getCurrentPosition(startPosition, locFail, { enableHighAccuracy: true);
 	}
 	function startPosition(startPos){
 		getAmbience();

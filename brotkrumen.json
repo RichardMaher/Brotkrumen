@@ -5,13 +5,13 @@
   "icons": [
 	{
 	  "src": "/Brotkrumen/gingerbreadhouse.png",
-	  "sizes": "48x48 128x128 144x144 192x192 512x512",
+	  "sizes": "48x48 128x128 144x144 192x192 512x512 393x319",
 	  "type": "image/png",
 	  "purpose": "any"
 	},
 	{
 	  "src": "/Brotkrumen/gingerbreadhouse.png",
-	  "sizes": "48x48 128x128 144x144 192x192 512x512",
+	  "sizes": "48x48 128x128 144x144 192x192 512x512 393x319",
 	  "type": "image/png",
 	  "purpose": "maskable"
 	}
