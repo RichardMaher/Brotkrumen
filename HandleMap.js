@@ -291,7 +291,7 @@ function rainCheck(e) {
 	markerDiv.removeEventListener('transitionend', quiesced, { 'once': true });
 }
 function makeDestCenter() {
-	console.log("Panning to new Center " + map.getZoom() + " " + abort);
+	console.log("Make Dest Center " + map.getZoom() + " " + abort);
 	if (abort) return;
 
 	var home = map.getCenter();
@@ -317,12 +317,12 @@ function makeDestCenter() {
 			google.maps.event.addListenerOnce(map, 'idle', makeDestCenter);
 			map.setZoom(++zoom);
 		} else {
-			map.panTo(path[currStep]);
+			setTimeout(checkLoiter, 0);
 		}
 	}
 }
 function centerChanged() {
-	console.log("Center changed msv = " + markerDiv.style.visibility + " " + abort);
+	console.log("Center changed " + abort);
 	if (abort) return;
 
 	markerDiv.style.visibility = "hidden";
@@ -331,15 +331,15 @@ function centerChanged() {
 	markerDiv.style.transitionProperty = "left, top";
 	markerDiv.addEventListener('transitionend', quiesced, { 'once': true });
 }
-function quiesced(e) {
-	console.log("Quiesced " + e.type + " " + abort);
+function quiesced() {
+	console.log("Quiesced " + abort);
 	if (abort) return;
 
 	markerDiv.style.visibility = "visible";
-	setTimeout(plotStep, 0);
+	setTimeout(plotIt, 0);
 }
-function plotStep() {
-	console.log("plot step " + abort)
+function checkLoiter() {
+	console.log("check loiter " + abort)
 	if (abort) return;
 
 	markerDiv.style.transitionDuration = "0s";
@@ -352,7 +352,7 @@ function plotStep() {
 		showInterval();
 	} else {
 		console.log("1");
-		setTimeout(plotIt, 0);
+		map.panTo(path[currStep]);
 	}
 }
 function showInterval(){
@@ -363,7 +363,7 @@ function showInterval(){
 	if (countDown < 1){
 		infoWindow.close();	
 		console.log("2");
-		setTimeout(plotIt,0);
+		map.panTo(path[currStep]);
 	} else {
 		setTimeout(showInterval, ONE_SEC);
 	}
