@@ -117,8 +117,13 @@
 		}
 		
 		function centerChanged() {
-			console.log("Center Changed " + HandG.getPosition());
-//			markerDiv.style.visibility = "hidden";
+			console.log("Center Changed ");
+			google.maps.event.addListenerOnce(map, 'idle', reHome);
+		}
+		
+		function reHome() {
+			console.log("Re Home ");
+			markerDiv.style.visibility = "hidden";
 			markerDiv.style.transitionDuration = "1ms";
 			markerDiv.style.transitionTimingFunction = "linear";
 			markerDiv.style.transitionProperty = "left, top";
@@ -128,7 +133,6 @@
 				
 		function quiesced(e) {
 			markerStyle = getComputedStyle(markerDiv);
-
 			markerDiv.style.visibility = "visible";
 			console.log("Quiesced left " + markerStyle.left + " top " + markerStyle.top);
 			setTimeout(handover, 0);
