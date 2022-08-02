@@ -325,7 +325,7 @@ function centerChanged() {
 	console.log("Center changed " + abort);
 	if (abort) return;
 
-//	markerDiv.style.visibility = "hidden";
+	markerDiv.style.visibility = "hidden";
 	markerDiv.style.transitionDuration = "1ms";
 	markerDiv.style.transitionTimingFunction = "linear";
 	markerDiv.style.transitionProperty = "left, top";
