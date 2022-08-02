@@ -95,6 +95,7 @@
 	document.addEventListener("DOMContentLoaded", isDOMIsGood);
 	window.addEventListener('load', load);
 	window.addEventListener("contextmenu", e => {
+		console.log("Paste id = " + (e.target || e.srcElement).id)
 		if ((e.target || e.srcElement).id != "keyPaste")
 			e.preventDefault();
 	});
