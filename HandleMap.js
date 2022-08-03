@@ -331,17 +331,17 @@ function reHome() {
 	console.log("Re Home " + abort);
 	if (abort) return;
 
-	markerDiv.style.visibility = "hidden";
 	markerDiv.style.transitionDuration = "1ms";
 	markerDiv.style.transitionTimingFunction = "linear";
 	markerDiv.style.transitionProperty = "left, top";
 	markerDiv.addEventListener('transitionend', quiesced, { 'once': true });
+	markerDiv.style.visibility = "hidden";
 }
 function quiesced() {
+	markerDiv.style.visibility = "visible";
 	console.log("Quiesced " + abort);
 	if (abort) return;
 
-	markerDiv.style.visibility = "visible";
 	setTimeout(plotIt, 0);
 }
 function checkLoiter() {
