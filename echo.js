@@ -7,7 +7,7 @@
 var   doryRegister  = [];            // Meet someone new every day.
 const INTRO         = "GrussGott";   // Tell clients we're new.
 const FLEET_MANAGER = "/Fleet/Move"; // Starship control.
-const CACHE_NAME    = "BrotkrumenV1.3"
+const CACHE_NAME    = "BrotkrumenV1.4"
 	
 self.addEventListener('install',
     function (e) {
